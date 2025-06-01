@@ -43,9 +43,11 @@ process.on("uncaughtException", (err) => {
 // Routes
 import userRouter from "./routes/userRouter.js";
 import adminRouter from "./routes/adminRouter.js";
+import comicRouter from "./routes/comicRouter.js";
 
 app.use("/api/v1", userRouter);
 app.use("/api/v1", adminRouter);
+app.use("/api/v1", comicRouter);
 
 // Global error handling middleware
 app.use((err, req, res, next) => {

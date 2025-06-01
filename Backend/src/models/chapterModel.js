@@ -15,18 +15,10 @@ const chapterSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    pages: [
-      {
-        imageUrl: {
-          type: String,
-          required: true,
-        },
-        pageNumber: {
-          type: Number,
-          required: true,
-        },
-      },
-    ],
+    pdfUrl:{
+      type: String,
+      required: true,
+    },
     premium: {
       type: Boolean,
       default: false,

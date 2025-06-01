@@ -5,24 +5,48 @@ const comicSchema = new mongoose.Schema(
     title: {
       type: String,
       required: true,
+      trim: true,
+      minlength: 1,
+      maxlength: 100,
     },
     description: {
       type: String,
       required: true,
+      trim: true,
+      minlength: 10,
+      maxlength: 1000,
     },
     coverImage: {
       type: String,
       required: true,
+      trim: true,
     },
     genres: [
       {
         type: String,
         required: true,
+        trim: true,
+        enum: [
+          "Action",
+          "Adventure",
+          "Comedy",
+          "Drama",
+          "Fantasy",
+          "Horror",
+          "Mystery",
+          "Romance",
+          "Sci-Fi",
+          "Slice of Life",
+          "Thriller",
+        ],
       },
     ],
     author: {
       type: String,
       required: true,
+      trim: true,
+      minlength: 2,
+      maxlength: 50,
     },
     premium: {
       type: Boolean,

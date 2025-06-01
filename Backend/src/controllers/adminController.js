@@ -36,4 +36,5 @@ const updateUserRole = async (req, res, next) => {
   }
 };
 
+
 export { getUsers, getUserById, updateUserRole };
