@@ -38,6 +38,12 @@ const comicSchema = new mongoose.Schema(
           "Sci-Fi",
           "Slice of Life",
           "Thriller",
+          "Superhero",
+          "Steampunk",
+          "Martial Arts",
+          "Supernatural",
+          "Psychological",
+          "sports",
         ],
       },
     ],
@@ -51,6 +57,7 @@ const comicSchema = new mongoose.Schema(
     premium: {
       type: Boolean,
       default: false,
+      required: true,
     },
     reviews: [
       {
@@ -85,5 +92,8 @@ comicSchema.virtual("averageRating").get(function () {
 
 // Indexes for performance
 comicSchema.index({ genres: 1, title: 1 });
+comicSchema.index({ author: 1 });
+comicSchema.index({ premium: 1 });
+comicSchema.index({ createdAt: 1 });
 
 export default mongoose.model("Comic", comicSchema);

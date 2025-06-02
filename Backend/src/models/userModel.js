@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema(
     googleId: {
       type: String,
       unique: true,
-      sparse: true, // Allows null for non-Google users
+      sparse: true,
     },
     provider: {
       type: String,
@@ -34,17 +34,13 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: false, // Optional for Google login
+      required: false,
       minlength: 6,
       maxlength: 12,
     },
     avatar: {
       type: String,
       default: "",
-    },
-    premium: {
-      type: Boolean,
-      default: false,
     },
     role: {
       type: String,
@@ -89,6 +85,17 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Check if the user has an active premium subscription
+userSchema.methods.hasActivePremiumSubscription = function () {
+  if (this.role === "admin") return true; // Admins always have access
+  if (this.subscription.plan !== "premium") return false;
+  const now = new Date();
+  return (
+    this.subscription.startDate <= now &&
+    (!this.subscription.endDate || this.subscription.endDate >= now)
+  );
+};
 
 userSchema.pre("save", async function (next) {
   if (this.isModified("password") && this.password) {

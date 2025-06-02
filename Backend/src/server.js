@@ -44,10 +44,12 @@ process.on("uncaughtException", (err) => {
 import userRouter from "./routes/userRouter.js";
 import adminRouter from "./routes/adminRouter.js";
 import comicRouter from "./routes/comicRouter.js";
+import chapterRouter from "./routes/chapterRouter.js";
 
 app.use("/api/v1", userRouter);
 app.use("/api/v1", adminRouter);
 app.use("/api/v1", comicRouter);
+app.use("/api/v1", chapterRouter);
 
 // Global error handling middleware
 app.use((err, req, res, next) => {
