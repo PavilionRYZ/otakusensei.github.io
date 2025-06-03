@@ -326,4 +326,61 @@ const getComicById = async (req, res, next) => {
   }
 };
 
-export { addComic, getComics, getComicById };
+const likeComic = async (req, res, next) => {
+  try {
+    const { id: comicId } = req.params;
+    const userId = req.user._id;
+
+    // Validate comicId
+    if (!mongoose.Types.ObjectId.isValid(comicId)) {
+      return next(new ErrorHandler("Invalid Comic ID", 400));
+    }
+
+    // Check if comic exists
+    const comic = await Comic.findById(comicId);
+    if (!comic) {
+      return next(new ErrorHandler("Comic not found", 404));
+    }
+
+    // Check if user exists (optional, since req.user should be valid)
+    const userExists = await User.findById(userId);
+    if (!userExists) {
+      return next(new ErrorHandler("User not found", 404));
+    }
+
+    // Check if user has already liked the comic
+    const hasLiked = comic.likes.includes(userId);
+
+    if (hasLiked) {
+      // Unlike: Remove userId from likes
+      comic.likes = comic.likes.filter(
+        (id) => id.toString() !== userId.toString()
+      );
+    } else {
+      // Like: Add userId to likes
+      comic.likes.push(userId);
+    }
+
+    await comic.save();
+
+    res.status(200).json({
+      success: true,
+      message: hasLiked
+        ? "Comic unliked successfully"
+        : "Comic liked successfully",
+      data: {
+        likesCount: comic.likes.length,
+        hasLiked: !hasLiked,
+      },
+    });
+  } catch (error) {
+    if (error.name === "CastError") {
+      return next(new ErrorHandler("Invalid ID format", 400));
+    }
+    return next(
+      new ErrorHandler(`Failed to toggle like: ${error.message}`, 500)
+    );
+  }
+};
+
+export { addComic, getComics, getComicById, likeComic };
