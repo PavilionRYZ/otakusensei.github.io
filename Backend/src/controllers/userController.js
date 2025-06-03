@@ -15,16 +15,16 @@ import {
 
 const sendResponseWithToken = (user, res) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "1d",
+    expiresIn: process.env.TOKEN_EXPIRY,
   });
-  const { password: pass, ...rest } = user._doc;
+  const { password, googleId, refreshToken, ...rest } = user._doc;
 
   res
     .cookie("token", token, {
       httpOnly: true,
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       secure: process.env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: process.env.COOKIE_MAX_AGE,
       path: "/",
     })
     .status(200)
@@ -62,6 +62,20 @@ const signup = async (req, res, next) => {
       );
     }
 
+    if (phone) {
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(phone)) {
+        return next(new ErrorHandler("Invalid phone number", 400));
+      }
+    }
+
+    if (avatar) {
+      const urlRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/;
+      if (!urlRegex.test(avatar)) {
+        return next(new ErrorHandler("Invalid avatar URL", 400));
+      }
+    }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return next(new ErrorHandler("User already exists", 400));
@@ -71,6 +85,7 @@ const signup = async (req, res, next) => {
     await saveOtp(email, otp);
     await sendOtpEmail(email, otp);
 
+    // Store temp user data in session
     req.session.tempUser = {
       email,
       password,
@@ -79,9 +94,11 @@ const signup = async (req, res, next) => {
       lastName,
       avatar,
     };
+    req.session.tempUserExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
+
     res.status(200).json({ success: true, message: "OTP sent to your email" });
   } catch (error) {
-    return next(new ErrorHandler("User Signup Failed", 500));
+    return next(new ErrorHandler(`User signup failed: ${error.message}`, 500));
   }
 };
 
@@ -95,9 +112,23 @@ const verifyOtp = async (req, res, next) => {
 
     await validateOtp(email, otp);
 
+    // Retrieve temp user from session
     const tempUser = req.session.tempUser;
-    if (!tempUser || tempUser.email !== email) {
-      return next(new ErrorHandler("Invalid session or email mismatch", 400));
+    const tempUserExpiry = req.session.tempUserExpiry;
+
+    if (!tempUser || !tempUserExpiry) {
+      return next(new ErrorHandler("Session expired or invalid", 400));
+    }
+
+    // Check if session has expired
+    if (Date.now() > tempUserExpiry) {
+      delete req.session.tempUser;
+      delete req.session.tempUserExpiry;
+      return next(new ErrorHandler("Session expired", 400));
+    }
+
+    if (tempUser.email !== email) {
+      return next(new ErrorHandler("Email mismatch", 400));
     }
 
     const newUser = await User.create({
@@ -106,16 +137,19 @@ const verifyOtp = async (req, res, next) => {
       phone: tempUser.phone,
       firstName: tempUser.firstName,
       lastName: tempUser.lastName,
-      avatar: tempUser.avatar,
+      avatar: tempUser.avatar || "",
       provider: "local",
     });
 
+    // Clear temp user data from session
     delete req.session.tempUser;
+    delete req.session.tempUserExpiry;
 
     sendResponseWithToken(newUser, res);
   } catch (error) {
-    // console.log("error during verification:", error);
-    next(new ErrorHandler(error.message, 500));
+    return next(
+      new ErrorHandler(`OTP verification failed: ${error.message}`, 400)
+    );
   }
 };
 
@@ -126,7 +160,7 @@ const login = async (req, res, next) => {
       return next(new ErrorHandler("Email and password are required", 400));
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return next(new ErrorHandler("Invalid email or password", 400));
     }
@@ -140,15 +174,9 @@ const login = async (req, res, next) => {
       return next(new ErrorHandler("Invalid email or password", 400));
     }
 
-    // Log the user into the session
-    req.login(user, (err) => {
-      if (err) {
-        return next(new ErrorHandler("Failed to establish session", 500));
-      }
-      sendResponseWithToken(user, res);
-    });
+    sendResponseWithToken(user, res);
   } catch (error) {
-    return next(new ErrorHandler("Login failed due to server error", 500));
+    return next(new ErrorHandler(`Login failed: ${error.message}`, 500));
   }
 };
 
@@ -167,73 +195,84 @@ const logout = async (req, res, next) => {
         message: "Logged out successfully",
       });
   } catch (error) {
-    return next(new ErrorHandler("Logout failed due to server error", 500));
+    return next(new ErrorHandler(`Logout failed: ${error.message}`, 500));
   }
 };
 
 const updateProfile = async (req, res, next) => {
   try {
-    // Fetch the full user object using the ID from the JWT
-    // const user = await User.findById(req.user.id);
-    // if (!user) {
-    //   return next(new ErrorHandler("User not found", 404));
-    // }
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return next(new ErrorHandler("User not found", 404));
+    }
 
-    // const { firstName, lastName, phone, avatar } = req.body;
-    // if (!firstName && !lastName && !phone && !avatar) {
-    //   return next(new ErrorHandler("No fields to update", 400));
-    // }
-    const { avatar } = req.body;
-    if (!avatar) {
+    const { firstName, lastName, phone, avatar } = req.body;
+    if (!firstName && !lastName && !phone && !avatar) {
       return next(new ErrorHandler("No fields to update", 400));
     }
 
-    // // Validate fields if provided
-    // if (firstName && firstName.length < 3) {
-    //   return next(
-    //     new ErrorHandler("First name must be at least 3 characters", 400)
-    //   );
-    // }
-    // if (phone) {
-    //   const phoneRegex = /^\d{10}$/;
-    //   if (!phoneRegex.test(phone)) {
-    //     return next(new ErrorHandler("Invalid phone number", 400));
-    //   }
-    // }
+    // Validate fields if provided
+    if (firstName && firstName.length < 3) {
+      return next(
+        new ErrorHandler("First name must be at least 3 characters", 400)
+      );
+    }
+    if (lastName && lastName.length > 0 && lastName.length < 3) {
+      return next(
+        new ErrorHandler(
+          "Last name must be at least 3 characters if provided",
+          400
+        )
+      );
+    }
+    if (phone) {
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(phone)) {
+        return next(new ErrorHandler("Invalid phone number", 400));
+      }
+    }
     if (avatar) {
       const urlRegex = /^(https?:\/\/[^\s$.?#].[^\s]*)$/;
       if (!urlRegex.test(avatar)) {
         return next(new ErrorHandler("Invalid avatar URL", 400));
       }
     }
-    const updateUser = await User.findByIdAndUpdate(
+
+    const updatedFields = {};
+    if (firstName) updatedFields.firstName = firstName;
+    if (lastName !== undefined) updatedFields.lastName = lastName || "";
+    if (phone) updatedFields.phone = phone;
+    if (avatar) updatedFields.avatar = avatar;
+
+    const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
-      { avatar },
-      { new: true, runValidators: true, useFindAndModify: false }
+      updatedFields,
+      { new: true, runValidators: true }
     );
-    // Update only provided fields
-    // if (firstName) user.firstName = firstName;
-    // if (lastName) user.lastName = lastName;
-    // if (phone) user.phone = phone;
-    // if (avatar) user.avatar = avatar;
 
-    // await user.save();
+    const { password, googleId, refreshToken, ...rest } = updatedUser._doc;
 
-    // const { password: pass, googleId, refreshToken, ...rest } = user._doc;
     res.status(200).json({
       success: true,
       message: "Profile updated successfully",
-      data: { ...updateUser._doc },
-      // user: rest,
+      data: rest,
     });
   } catch (error) {
-    return next(new ErrorHandler("Failed to update profile", 500));
+    if (error.name === "ValidationError") {
+      const message = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
+      return next(new ErrorHandler(`Validation failed: ${message}`, 400));
+    }
+    return next(
+      new ErrorHandler(`Failed to update profile: ${error.message}`, 500)
+    );
   }
 };
 
 const updatePassword = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).select("+password");
     if (!user) {
       return next(new ErrorHandler("User not found", 404));
     }
@@ -271,7 +310,9 @@ const updatePassword = async (req, res, next) => {
       message: "Password updated successfully",
     });
   } catch (error) {
-    return next(new ErrorHandler("Failed to update password", 500));
+    return next(
+      new ErrorHandler(`Failed to update password: ${error.message}`, 500)
+    );
   }
 };
 
@@ -301,7 +342,9 @@ const forgotPassword = async (req, res, next) => {
       message: "Password reset link sent to your email",
     });
   } catch (error) {
-    return next(new ErrorHandler("Failed to send reset link", 500));
+    return next(
+      new ErrorHandler(`Failed to send reset link: ${error.message}`, 500)
+    );
   }
 };
 
@@ -345,12 +388,6 @@ const resetPassword = async (req, res, next) => {
       message: "Password updated successfully",
     });
   } catch (error) {
-    if (error.name === "ValidationError") {
-      const message = Object.values(error.errors)
-        .map((err) => err.message)
-        .join(", ");
-      return next(new ErrorHandler(`Validation failed: ${message}`, 400));
-    }
     return next(
       new ErrorHandler(`Failed to reset password: ${error.message}`, 400)
     );
