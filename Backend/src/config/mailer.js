@@ -1,4 +1,6 @@
 import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+dotenv.config();
 
 // Create a transporter for sending emails
 const transporter = nodemailer.createTransport({
@@ -74,4 +76,92 @@ const sendResetPasswordEmail = async (email, token) => {
   }
 };
 
-export { sendOtpEmail, sendResetPasswordEmail };
+// Function to send subscription confirmation email
+const sendSubscriptionConfirmationEmail = async (
+  email,
+  planType,
+  startDate,
+  endDate
+) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "OtakuSensei Premium Subscription Confirmation",
+    text: `Dear User,\n\nCongratulations on purchasing a ${planType} premium subscription!\n\nYour subscription starts on ${
+      startDate.toISOString().split("T")[0]
+    } and ends on ${
+      endDate.toISOString().split("T")[0]
+    }.\n\nEnjoy your premium comics!\n\nBest regards,\nOtakuSensei Team`,
+    html: `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+        <h2 style="color: #333; text-align: center;">Congratulations on Your Premium Subscription!</h2>
+        <p>Dear User,</p>
+        <p>Thank you for purchasing a <strong>${planType}</strong> premium subscription with OtakuSensei!</p>
+        <p>Your subscription details:</p>
+        <ul>
+            <li><strong>Start Date:</strong> ${
+              startDate.toISOString().split("T")[0]
+            }</li>
+            <li><strong>End Date:</strong> ${
+              endDate.toISOString().split("T")[0]
+            }</li>
+        </ul>
+        <p>Enjoy unlimited access to premium comics during your subscription period!</p>
+        <p>If you have any questions, please contact our support team.</p>
+        <p>Best regards,<br>OtakuSensei Team</p>
+    </div>`,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Subscription confirmation email sent to ${email}`);
+  } catch (error) {
+    console.error("Error sending subscription confirmation email:", error);
+    throw new Error("Failed to send subscription confirmation email");
+  }
+};
+
+// Function to send subscription reminder email
+const sendSubscriptionReminderEmail = async (email, planType, endDate) => {
+  const renewUrl = `${
+    process.env.FRONTEND_BASE_URL || "http://localhost:3000"
+  }/subscription`;
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: "OtakuSensei Premium Subscription Reminder",
+    text: `Dear User,\n\nThis is a reminder that your ${planType} premium subscription will end on ${
+      endDate.toISOString().split("T")[0]
+    }.\n\nPlease renew your subscription to continue enjoying premium comics!\n\nBest regards,\nOtakuSensei Team`,
+    html: `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+        <h2 style="color: #333; text-align: center;">Premium Subscription Reminder</h2>
+        <p>Dear User,</p>
+        <p>This is a reminder that your <strong>${planType}</strong> premium subscription with OtakuSensei will end on:</p>
+        <p style="text-align: center; font-size: 18px; font-weight: bold; margin: 10px 0;">${
+          endDate.toISOString().split("T")[0]
+        }</p>
+        <p>Please renew your subscription to continue enjoying unlimited access to premium comics.</p>
+        <div style="text-align: center; margin: 20px 0;">
+            <a href="${renewUrl}" style="background-color: #E8B5B8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Renew Subscription</a>
+        </div>
+        <p>If you have any questions, please contact our support team.</p>
+        <p>Best regards,<br>OtakuSensei Team</p>
+    </div>`,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Subscription reminder email sent to ${email}`);
+  } catch (error) {
+    console.error("Error sending subscription reminder email:", error);
+    throw new Error("Failed to send subscription reminder email");
+  }
+};
+
+export {
+  sendOtpEmail,
+  sendResetPasswordEmail,
+  sendSubscriptionConfirmationEmail,
+  sendSubscriptionReminderEmail,
+};

@@ -13,6 +13,7 @@ import {
 } from "../controllers/userController.js";
 import { verifyToken } from "../middleware/verifyUser.js";
 import rateLimit from "express-rate-limit";
+import User from "../models/userModel.js";
 
 const router = express.Router();
 router.use(passport.initialize());
@@ -69,7 +70,9 @@ router.get(
     try {
       if (!req.user) {
         return res.redirect(
-          process.env.FRONTEND_LOGIN_URL || "http://localhost:3000/login"
+          `${
+            process.env.FRONTEND_LOGIN_URL || "http://localhost:5173/login"
+          }?error=google_login_failed`
         );
       }
       // Issue a JWT and set the token cookie
@@ -77,7 +80,9 @@ router.get(
     } catch (error) {
       console.error("Google callback error:", error);
       return res.redirect(
-        process.env.FRONTEND_LOGIN_URL || "http://localhost:3000/login"
+        `${
+          process.env.FRONTEND_LOGIN_URL || "http://localhost:5173/login"
+        }?error=google_login_failed`
       );
     }
   }

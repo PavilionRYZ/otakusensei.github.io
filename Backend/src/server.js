@@ -4,31 +4,37 @@ import dotenv from "dotenv";
 import connectToMongo from "./config/mongoDb.js";
 import cookieParser from "cookie-parser";
 import session from "express-session";
+import MongoStore from "connect-mongo";
+import "./utils/cronJobs.js";
 
 dotenv.config();
 connectToMongo();
 
 const app = express();
 
-// Middleware - Ensure session is added before routes
+// Middleware
 app.use(express.json());
 app.use(cookieParser());
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "your-default-secret", // Fallback secret
+    secret: process.env.SESSION_SECRET || "your-default-secret",
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI,
+      ttl: 24 * 60 * 60, // 1 day in seconds
+    }),
     cookie: {
-      secure: process.env.NODE_ENV === "production", // Secure cookies in production
+      secure: process.env.NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      httpOnly: true, // Prevent client-side access to cookies
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // For cross-origin requests
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
   })
 );
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
     credentials: true,
   })
 );
@@ -46,12 +52,14 @@ import adminRouter from "./routes/adminRouter.js";
 import comicRouter from "./routes/comicRouter.js";
 import chapterRouter from "./routes/chapterRouter.js";
 import reviewRouter from "./routes/reviewsRouter.js";
+import paymentRouter from "./routes/paymentRouter.js";
 
 app.use("/api/v1", userRouter);
 app.use("/api/v1", adminRouter);
 app.use("/api/v1", comicRouter);
 app.use("/api/v1", chapterRouter);
 app.use("/api/v1", reviewRouter);
+app.use("/api/v1", paymentRouter);
 
 // Global error handling middleware
 app.use((err, req, res, next) => {

@@ -7,27 +7,25 @@ const paymentSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    planType: {
+      type: String,
+      enum: ["monthly", "quarterly", "yearly"],
+      required: true,
+    },
     amount: {
       type: Number,
       required: true,
+      min: 0,
     },
-    plan: {
+    paymentId: {
       type: String,
-      enum: ["basic", "premium"],
       required: true,
+      unique: true,
     },
     status: {
       type: String,
-      enum: ["pending", "completed", "failed"],
+      enum: ["pending", "success", "failed"],
       default: "pending",
-    },
-    transactionId: {
-      type: String,
-      required: true,
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
     },
   },
   { timestamps: true }
