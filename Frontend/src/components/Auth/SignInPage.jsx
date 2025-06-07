@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
-import { FaEnvelope, FaLock } from "react-icons/fa";
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { login, clearAuthState, googleAuth } from "../../Redux/Slices/authSlice";
 import { toast } from "react-toastify";
 import { GoogleLogin } from '@react-oauth/google';
@@ -61,20 +61,20 @@ const SignInPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+        <div className="min-h-screen flex items-center justify-center bg-[#121A21] dark:bg-gray-50  dark:text-black">
             <motion.div
-                className="w-full max-w-md p-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg"
+                className="w-full max-w-md p-8 bg-gray-900 dark:bg-gray-100 text-white dark:text-black rounded-lg shadow-lg"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
             >
-                <h2 className="text-3xl font-bold text-center mb-6 text-gray-800 dark:text-white">Sign In</h2>
+                <h2 className="text-3xl font-bold text-center mb-6 text-gray-100 dark:text-black">Sign In</h2>
                 {error && (
                     <p className="text-red-500 text-center mb-4">{error}</p>
                 )}
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Email</label>
+                        <label className="block text-sm font-medium mb-2 text-gray-100 dark:text-gray-300">Email</label>
                         <div className="relative">
                             <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
                             <input
@@ -89,7 +89,7 @@ const SignInPage = () => {
                         </div>
                     </div>
                     <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Password</label>
+                        <label className="block text-sm font-medium mb-2 text-gray-100 dark:text-gray-300">Password</label>
                         <div className="relative">
                             <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
                             <input
@@ -104,9 +104,9 @@ const SignInPage = () => {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1 text-gray-500 dark:text-gray-400"
+                                className="absolute right-5 top-1/2 transform -translate-y-1/2 text-gray-500 text-xl"
                             >
-                                {showPassword ? "Hide" : "Show"}
+                                {showPassword ? <FaEyeSlash /> : <FaEye />}
                             </button>
                         </div>
                     </div>
@@ -123,13 +123,13 @@ const SignInPage = () => {
                         variants={buttonVariants}
                         whileHover="hover"
                         whileTap="tap"
-                        className="w-full py-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition duration-300"
+                        className="w-full py-3 rounded-full bg-[#243647] text-white  dark:bg-[#E8B5B8] dark:hover:bg-[#e59ea3] transition duration-300"
                         disabled={isLoading}
                     >
                         {isLoading ? "Signing In..." : "Sign In"}
                     </motion.button>
                 </form>
-                <p className="mt-4 text-center text-gray-600 dark:text-gray-400">
+                <p className="mt-4 text-center text-gray-100 dark:text-gray-400">
                     Don't have an account?{" "}
                     <Link
                         to="/signup"
