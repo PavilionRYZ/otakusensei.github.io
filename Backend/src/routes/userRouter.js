@@ -1,5 +1,5 @@
 import express from "express";
-import passport from "../config/passportConfig.js";
+// import passport from "../config/passportConfig.js";
 import {
   signup,
   verifyOtp,
@@ -14,9 +14,10 @@ import {
 import { verifyToken } from "../middleware/verifyUser.js";
 import rateLimit from "express-rate-limit";
 import User from "../models/userModel.js";
+import { verifyGoogleToken } from "../utils/googleAuth.js";
 
 const router = express.Router();
-router.use(passport.initialize());
+// router.use(passport.initialize());
 // router.use(passport.session());
 
 // Rate limiting for login route
@@ -57,54 +58,83 @@ router
 router.route("/user/forgot-password").post(resetLimiter, forgotPassword);
 router.route("/user/reset-password/:token").post(resetLimiter, resetPassword);
 
-// Google login routes
-router.get(
-  "/auth/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
-);
+router.post("/auth/google", async (req, res) => {
+  const { token } = req.body;
 
-router.get(
-  "/auth/google/callback",
-  passport.authenticate("google", { session: false }), // Disable session
-  (req, res, next) => {
-    try {
-      if (!req.user) {
-        return res.redirect(
-          `${
-            process.env.FRONTEND_LOGIN_URL || "http://localhost:5173/login"
-          }?error=google_login_failed`
-        );
-      }
-      // Issue a JWT and set the token cookie
-      sendResponseWithToken(req.user, res);
-    } catch (error) {
-      console.error("Google callback error:", error);
-      return res.redirect(
-        `${
-          process.env.FRONTEND_LOGIN_URL || "http://localhost:5173/login"
-        }?error=google_login_failed`
-      );
-    }
-  }
-);
-
-// Get current user
-router.get("/user", userLimiter, verifyToken, async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id).select(
-      "-password -googleId -bookmarks -readingHistory"
-    );
+    const payload = await verifyGoogleToken(token);
+    const { email, given_name, family_name, picture } = payload;
+
+    let user = await User.findOne({ email });
+
     if (!user) {
-      return next(new ErrorHandler("User not found", 404));
+      user = new User({
+        firstName: given_name,
+        lastName: family_name,
+        email,
+        avatar: picture,
+        provider: "google",
+        googleId: payload.sub,
+      });
+      await user.save();
     }
-    res.status(200).json({
-      success: true,
-      message: "User data retrieved successfully",
-      user,
-    });
+
+    // Use sendResponseWithToken to handle the token and response
+    sendResponseWithToken(user, res);
   } catch (error) {
-    return next(new ErrorHandler("Failed to retrieve user data", 500));
+    console.error("Authentication failed:", error);
+    res.status(500).json({ error: "Authentication failed" });
   }
 });
+
+// Google login routes
+// router.get(
+//   "/auth/google",
+//   passport.authenticate("google", { scope: ["profile", "email"] })
+// );
+
+// router.get(
+//   "/auth/google/callback",
+//   passport.authenticate("google", { session: false }), // Disable session
+//   (req, res, next) => {
+//     try {
+//       if (!req.user) {
+//         return res.redirect(
+//           `${
+//             process.env.FRONTEND_LOGIN_URL || "http://localhost:5173/login"
+//           }?error=google_login_failed`
+//         );
+//       }
+//       // Issue a JWT and set the token cookie
+//       sendResponseWithToken(req.user, res);
+//     } catch (error) {
+//       console.error("Google callback error:", error);
+//       return res.redirect(
+//         `${
+//           process.env.FRONTEND_LOGIN_URL || "http://localhost:5173/login"
+//         }?error=google_login_failed`
+//       );
+//     }
+//   }
+// );
+
+// // Get current user
+// router.get("/user", userLimiter, verifyToken, async (req, res, next) => {
+//   try {
+//     const user = await User.findById(req.user.id).select(
+//       "-password -googleId -bookmarks -readingHistory"
+//     );
+//     if (!user) {
+//       return next(new ErrorHandler("User not found", 404));
+//     }
+//     res.status(200).json({
+//       success: true,
+//       message: "User data retrieved successfully",
+//       user,
+//     });
+//   } catch (error) {
+//     return next(new ErrorHandler("Failed to retrieve user data", 500));
+//   }
+// });
 
 export default router;

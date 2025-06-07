@@ -24,7 +24,7 @@ const fetchLimiter = rateLimit({
 
 router.route("/comic/add").post(verifyToken, verifyAdmin, addComic);
 router.route("/comics").get(fetchLimiter, getComics);
-router.route("/comic/:id").get(verifyToken, fetchLimiter, getComicById);
+router.route("/comic/:id").get( fetchLimiter, getComicById);
 router.route("/comic/like/:id").post(verifyToken, likeComic);
 
 export default router;

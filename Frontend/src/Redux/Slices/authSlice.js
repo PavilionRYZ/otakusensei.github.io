@@ -80,11 +80,23 @@ export const loadUser = createAsyncThunk(
   }
 );
 
-export const checkGoogleLogin = createAsyncThunk(
-  "auth/checkGoogleLogin",
-  async (_, { rejectWithValue }) => {
+// export const checkGoogleLogin = createAsyncThunk(
+//   "auth/checkGoogleLogin",
+//   async (_, { rejectWithValue }) => {
+//     try {
+//       const response = await axios.get(`${API_URL}/user`);
+//       return response.data.user;
+//     } catch (error) {
+//       return rejectWithValue(error.response.data);
+//     }
+//   }
+// );
+
+export const googleAuth = createAsyncThunk(
+  "auth/googleAuth",
+  async (token, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${API_URL}/user`);
+      const response = await axios.post(`${API_URL}/auth/google`, { token });
       return response.data.user;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -220,21 +232,18 @@ const authSlice = createSlice({
         state.user = null;
       })
       // Check Google Login
-      .addCase(checkGoogleLogin.pending, (state) => {
+      .addCase(googleAuth.pending, (state) => {
         state.isLoading = true;
         state.error = null;
-        state.message = null;
       })
-      .addCase(checkGoogleLogin.fulfilled, (state, action) => {
+      .addCase(googleAuth.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = true;
         state.user = action.payload;
         state.message = "Google login successful";
       })
-      .addCase(checkGoogleLogin.rejected, (state, action) => {
+      .addCase(googleAuth.rejected, (state, action) => {
         state.isLoading = false;
-        state.isAuthenticated = false;
-        state.user = null;
         state.error = action.payload?.message || "Google login failed";
       })
       // Forgot Password

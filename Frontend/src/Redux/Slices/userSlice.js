@@ -27,7 +27,7 @@ export const updateProfile = createAsyncThunk(
     }
   }
 );
-
+    
 export const updatePassword = createAsyncThunk(
   "user/updatePassword",
   async ({ oldPassword, newPassword }, { rejectWithValue }) => {

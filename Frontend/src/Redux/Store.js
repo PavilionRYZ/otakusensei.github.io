@@ -20,10 +20,11 @@ const persistConfig = {
 //import reducers
 import userReducer from "./Slices/userSlice";
 import authReducer from "./Slices/authSlice";
-
+import comicReducer from "./Slices/comicSlice";
 const rootReducer = combineReducers({
   user: userReducer,
   auth: authReducer,
+  comic: comicReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
