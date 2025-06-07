@@ -61,7 +61,7 @@ const Header = () => {
     };
 
     return (
-        <header className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 py-4 shadow-lg relative">
+        <header className="sticky top-0 left-0 right-0 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 py-3 shadow-lg z-50">
             <div className="container mx-auto flex justify-between items-center px-4">
                 {/* Logo */}
                 <Link to="/">
@@ -79,7 +79,7 @@ const Header = () => {
                 <nav className="hidden md:flex items-center space-x-6">
                     <Link to="/">
                         <motion.span
-                            className="text-lg hover:text-blue-400 dark:hover:text-blue-600 flex items-center space-x-2"
+                            className="text-md hover:text-blue-400 dark:hover:text-[#f19ba1] flex items-center space-x-2"
                             variants={navVariants}
                             whileHover="hover"
                         >
@@ -89,7 +89,7 @@ const Header = () => {
                     </Link>
                     <Link to="/comics">
                         <motion.span
-                            className="text-lg hover:text-blue-400 dark:hover:text-blue-600 flex items-center space-x-2"
+                            className="text-md hover:text-blue-400 dark:hover:text-[#f19ba1] flex items-center space-x-2"
                             variants={navVariants}
                             whileHover="hover"
                         >
@@ -112,9 +112,9 @@ const Header = () => {
                             transition={{ duration: 0.5 }}
                         >
                             {theme === "dark" ? (
-                                <FaSun className="h-6 w-6 text-yellow-400" />
+                                <FaSun className="h-5 w-5 text-yellow-400" />
                             ) : (
-                                <FaMoon className="h-6 w-6 text-white" />
+                                <FaMoon className="h-5 w-5 text-white" />
                             )}
                         </motion.div>
                     </motion.button>

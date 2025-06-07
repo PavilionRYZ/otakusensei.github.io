@@ -22,7 +22,7 @@ const App = () => {
         <AnimeLoadingPage />
       ) : (
         <div className="flex min-h-screen flex-col">
-          <Header />
+          <Header/>
           <ErrorBoundary>
             <main>
               <Routes>
