@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import ComicCard from "../Layout/ComicCard";
 import { fetchComics } from "../../Redux/Slices/comicSlice";
-
+import AnimeLoadingPage from "../Loading/AnimeLoadingPage";
 const HomePage = () => {
   const dispatch = useDispatch();
   const { comics, isLoading, error } = useSelector((state) => state.comic);
@@ -44,7 +44,7 @@ const HomePage = () => {
       {/* Comics Grid */}
       <section className="container mx-auto px-4 py-12">
         {isLoading ? (
-          <p className="text-center">Loading comics...</p>
+          <AnimeLoadingPage />
         ) : error ? (
           <p className="text-center text-red-500 dark:text-red-600">{error}</p>
         ) : (

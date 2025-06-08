@@ -3,9 +3,7 @@ import User from "../models/userModel.js";
 import SubscriptionPlan from "../models/subscriptionPlanModel.js";
 import Payment from "../models/paymentModel.js";
 import ErrorHandler from "../utils/errorHandler.js";
-import {
-  sendSubscriptionConfirmationEmail,
-} from "../config/mailer.js";
+import { sendSubscriptionConfirmationEmail } from "../config/mailer.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -19,11 +17,28 @@ const initiatePayment = async (req, res, next) => {
       return next(new ErrorHandler("Invalid plan type", 400));
     }
 
+    // Check if user has any pending payments
+    const pendingPayment = await Payment.findOne({
+      user: userId,
+      status: "pending",
+    });
+    if (pendingPayment) {
+      return next(
+        new ErrorHandler(
+          "You have a pending payment. Please complete or cancel it before initiating a new payment.",
+          400
+        )
+      );
+    }
+
     // Check if user already has an active premium subscription
     const user = await User.findById(userId);
     if (user.hasActivePremiumSubscription()) {
       return next(
-        new ErrorHandler("You already have an active premium subscription", 400)
+        new ErrorHandler(
+          "You already have an active premium subscription. You cannot purchase another until it expires.",
+          400
+        )
       );
     }
 

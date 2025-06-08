@@ -8,6 +8,8 @@ import Header from './components/Layout/Header';
 import Footer from './components/Layout/Footer';
 import Home from './components/Pages/HomePage';
 import ComicDetailsPage from './components/Pages/ComicDetailsPage';
+import SubscriptionPlans from './components/Pages/SubscriptionPlans';
+import PaymentPage from './components/Pages/PaymentPage';
 import PageNotFound from './components/Pages/PageNotFound';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import { useSelector } from 'react-redux';
@@ -22,7 +24,7 @@ const App = () => {
         <AnimeLoadingPage />
       ) : (
         <div className="flex min-h-screen flex-col">
-          <Header/>
+          <Header />
           <ErrorBoundary>
             <main>
               <Routes>
@@ -52,8 +54,9 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
+                <Route path="/payment/:planType" element={<PaymentPage />} />
                 <Route path="/comics/:id" element={<ComicDetailsPage />} />
-                <Route path="/upgrade" element={<div>Upgrade Page</div>} />
+                <Route path="/upgrade" element={<SubscriptionPlans />} />
                 <Route path="/read/:comicId/chapter/:chapterNumber" element={<div>Read Chapter Page</div>} />
                 <Route path="*" element={<PageNotFound />} />
               </Routes>

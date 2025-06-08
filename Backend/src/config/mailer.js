@@ -13,25 +13,86 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Common email styling for comic book theme
+const getEmailTemplate = (content) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OtakuSensei</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <!-- Header -->
+        <div style="background: white; border-radius: 12px 12px 0 0; padding: 30px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+            <div style="display: inline-block; background: linear-gradient(45deg, #ff6b6b, #4ecdc4); padding: 12px 24px; border-radius: 25px; margin-bottom: 15px;">
+                <h1 style="margin: 0; color: white; font-size: 24px; font-weight: bold; letter-spacing: 1px;">📚 OTAKU SENSEI</h1>
+            </div>
+            <p style="margin: 0; color: #666; font-size: 14px;">Your Gateway to Amazing Comics</p>
+        </div>
+        
+        <!-- Content -->
+        <div style="background: white; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+            ${content}
+            
+            <!-- Footer -->
+            <div style="margin-top: 40px; padding-top: 30px; border-top: 2px solid #f0f0f0; text-align: center;">
+                <p style="margin: 0 0 10px 0; color: #888; font-size: 12px;">
+                    This email was sent by OtakuSensei. If you have any questions, contact our support team.
+                </p>
+                <div style="margin-top: 15px;">
+                    <span style="display: inline-block; margin: 0 5px; color: #ff6b6b; font-size: 16px;">📖</span>
+                    <span style="display: inline-block; margin: 0 5px; color: #4ecdc4; font-size: 16px;">⚡</span>
+                    <span style="display: inline-block; margin: 0 5px; color: #45b7d1; font-size: 16px;">🎨</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+`;
+
 // Function to send OTP email for signup
 const sendOtpEmail = async (email, otp) => {
+  const content = `
+    <div style="text-align: center; margin-bottom: 30px;">
+        <div style="display: inline-block; background: linear-gradient(45deg, #ff6b6b, #ffa500); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <span style="font-size: 36px;">🔐</span>
+        </div>
+        <h2 style="margin: 0; color: #333; font-size: 28px; font-weight: 600;">Welcome to the Comic Universe!</h2>
+    </div>
+    
+    <p style="color: #555; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+        Hey there, future comic enthusiast! 👋 We're excited to have you join our community of manga and comic lovers.
+    </p>
+    
+    <p style="color: #555; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+        To complete your registration, please use this verification code:
+    </p>
+    
+    <div style="background: linear-gradient(45deg, #667eea, #764ba2); border-radius: 12px; padding: 25px; text-align: center; margin: 30px 0; box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);">
+        <p style="margin: 0 0 10px 0; color: white; font-size: 14px; font-weight: 500; letter-spacing: 1px;">YOUR VERIFICATION CODE</p>
+        <div style="color: white; font-size: 32px; font-weight: 700; letter-spacing: 8px; margin: 10px 0;">${otp}</div>
+        <p style="margin: 10px 0 0 0; color: rgba(255,255,255,0.8); font-size: 12px;">Expires in 5 minutes</p>
+    </div>
+    
+    <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 25px 0;">
+        <p style="margin: 0; color: #856404; font-size: 14px;">
+            <strong>⚠️ Security Note:</strong> If you didn't request this signup, please ignore this email.
+        </p>
+    </div>
+    
+    <p style="color: #666; font-size: 14px; text-align: center; margin-top: 30px;">
+        Ready to dive into amazing stories? Let's get started! 🚀
+    </p>
+  `;
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: "OtakuSensei Signup OTP",
-    text: `Your OTP for signup is: ${otp}. It will expire in 5 minutes.`,
-    html: `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-        <h2 style="color: #333; text-align: center;">Welcome to OtakuSensei!</h2>
-        <p>Dear User,</p>
-        <p>Thank you for signing up with OtakuSensei. Please use the following OTP to verify your email and complete your registration:</p>
-        <div style="background-color: #f7f7f7; padding: 10px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
-            ${otp}
-        </div>
-        <p>This OTP will expire in 5 minutes.</p>
-        <p>If you did not request this signup, please ignore this email or contact our support team.</p>
-        <p>Best regards,<br>OtakuSensei Team</p>
-    </div>`,
+    subject: "🎨 Your OtakuSensei Verification Code",
+    html: getEmailTemplate(content),
   };
 
   try {
@@ -46,25 +107,54 @@ const sendOtpEmail = async (email, otp) => {
 // Function to send password reset email with token link
 const sendResetPasswordEmail = async (email, token) => {
   const resetUrl = `${
-    process.env.FRONTEND_BASE_URL || "http://localhost:3000"
+    process.env.FRONTEND_BASE_URL || "http://localhost:5173"
   }/reset-password/${token}`;
+
+  const content = `
+    <div style="text-align: center; margin-bottom: 30px;">
+        <div style="display: inline-block; background: linear-gradient(45deg, #4ecdc4, #44a08d); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <span style="font-size: 36px;">🔑</span>
+        </div>
+        <h2 style="margin: 0; color: #333; font-size: 28px; font-weight: 600;">Password Reset Request</h2>
+    </div>
+    
+    <p style="color: #555; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+        No worries! We all forget passwords sometimes. 😅 Let's get you back to reading those amazing comics!
+    </p>
+    
+    <p style="color: #555; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+        Click the button below to create a new password for your account:
+    </p>
+    
+    <div style="text-align: center; margin: 35px 0;">
+        <a href="${resetUrl}" style="display: inline-block; background: linear-gradient(45deg, #ff6b6b, #ff8e8e); color: white; padding: 15px 35px; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 16px; letter-spacing: 0.5px; box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3); transition: all 0.3s ease;">
+            🔐 Reset My Password
+        </a>
+    </div>
+    
+    <div style="background: #e8f4f8; border: 1px solid #bee5eb; border-radius: 8px; padding: 15px; margin: 25px 0;">
+        <p style="margin: 0; color: #0c5460; font-size: 14px;">
+            <strong>⏰ Quick Reminder:</strong> This reset link will expire in 15 minutes for your security.
+        </p>
+    </div>
+    
+    <p style="color: #666; font-size: 14px; line-height: 1.5; margin-top: 25px;">
+        If the button doesn't work, copy and paste this link into your browser:<br>
+        <span style="color: #4ecdc4; word-break: break-all;">${resetUrl}</span>
+    </p>
+    
+    <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 25px 0;">
+        <p style="margin: 0; color: #856404; font-size: 14px;">
+            <strong>⚠️ Security Note:</strong> If you didn't request this password reset, please ignore this email.
+        </p>
+    </div>
+  `;
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: "OtakuSensei Password Reset",
-    text: `Click the following link to reset your password: ${resetUrl}\nThis link will expire in 15 minutes.`,
-    html: `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-        <h2 style="color: #333; text-align: center;">Password Reset Request</h2>
-        <p>Dear User,</p>
-        <p>We received a request to reset your password for your OtakuSensei account. Click the link below to reset your password:</p>
-        <div style="text-align: center; margin: 20px 0;">
-            <a href="${resetUrl}" style="background-color: #E8B5B8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a>
-        </div>
-        <p>This link will expire in 15 minutes.</p>
-        <p>If you did not request a password reset, please ignore this email or contact our support team.</p>
-        <p>Best regards,<br>OtakuSensei Team</p>
-    </div>`,
+    subject: "🔑 Reset Your OtakuSensei Password",
+    html: getEmailTemplate(content),
   };
 
   try {
@@ -83,33 +173,53 @@ const sendSubscriptionConfirmationEmail = async (
   startDate,
   endDate
 ) => {
+  const content = `
+    <div style="text-align: center; margin-bottom: 30px;">
+        <div style="display: inline-block; background: linear-gradient(45deg, #ffd700, #ffed4e); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <span style="font-size: 36px;">👑</span>
+        </div>
+        <h2 style="margin: 0; color: #333; font-size: 28px; font-weight: 600;">Welcome to Premium!</h2>
+    </div>
+    
+    <div style="background: linear-gradient(45deg, #667eea, #764ba2); border-radius: 12px; padding: 25px; text-align: center; margin: 30px 0; color: white;">
+        <p style="margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">🎉 Congratulations!</p>
+        <p style="margin: 0; font-size: 16px; opacity: 0.9;">You've unlocked the full comic experience with your <strong>${planType}</strong> subscription!</p>
+    </div>
+    
+    <div style="background: #f8f9ff; border-radius: 10px; padding: 25px; margin: 25px 0; border-left: 4px solid #667eea;">
+        <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px; font-weight: 600;">📅 Your Subscription Details</h3>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <span style="color: #666; font-weight: 500;">Start Date:</span>
+            <span style="color: #333; font-weight: 600;">${
+              startDate.toISOString().split("T")[0]
+            }</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+            <span style="color: #666; font-weight: 500;">End Date:</span>
+            <span style="color: #333; font-weight: 600;">${
+              endDate.toISOString().split("T")[0]
+            }</span>
+        </div>
+    </div>
+    
+    <div style="background: linear-gradient(45deg, #4ecdc4, #44a08d); border-radius: 10px; padding: 20px; margin: 25px 0; color: white; text-align: center;">
+        <h3 style="margin: 0 0 10px 0; font-size: 18px;">🚀 What You've Unlocked</h3>
+        <p style="margin: 5px 0; opacity: 0.9;">✨ Unlimited access to premium comics</p>
+        <p style="margin: 5px 0; opacity: 0.9;">📱 Ad-free reading experience</p>
+        <p style="margin: 5px 0; opacity: 0.9;">⚡ Early access to new releases</p>
+        <p style="margin: 5px 0; opacity: 0.9;">💎 Exclusive premium content</p>
+    </div>
+    
+    <p style="color: #555; font-size: 16px; line-height: 1.6; text-align: center; margin-top: 30px;">
+        Time to dive into your favorite stories! Happy reading! 📚✨
+    </p>
+  `;
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: "OtakuSensei Premium Subscription Confirmation",
-    text: `Dear User,\n\nCongratulations on purchasing a ${planType} premium subscription!\n\nYour subscription starts on ${
-      startDate.toISOString().split("T")[0]
-    } and ends on ${
-      endDate.toISOString().split("T")[0]
-    }.\n\nEnjoy your premium comics!\n\nBest regards,\nOtakuSensei Team`,
-    html: `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-        <h2 style="color: #333; text-align: center;">Congratulations on Your Premium Subscription!</h2>
-        <p>Dear User,</p>
-        <p>Thank you for purchasing a <strong>${planType}</strong> premium subscription with OtakuSensei!</p>
-        <p>Your subscription details:</p>
-        <ul>
-            <li><strong>Start Date:</strong> ${
-              startDate.toISOString().split("T")[0]
-            }</li>
-            <li><strong>End Date:</strong> ${
-              endDate.toISOString().split("T")[0]
-            }</li>
-        </ul>
-        <p>Enjoy unlimited access to premium comics during your subscription period!</p>
-        <p>If you have any questions, please contact our support team.</p>
-        <p>Best regards,<br>OtakuSensei Team</p>
-    </div>`,
+    subject: "👑 Welcome to OtakuSensei Premium!",
+    html: getEmailTemplate(content),
   };
 
   try {
@@ -124,30 +234,55 @@ const sendSubscriptionConfirmationEmail = async (
 // Function to send subscription reminder email
 const sendSubscriptionReminderEmail = async (email, planType, endDate) => {
   const renewUrl = `${
-    process.env.FRONTEND_BASE_URL || "http://localhost:3000"
+    process.env.FRONTEND_BASE_URL || "http://localhost:5173"
   }/subscription`;
+
+  const content = `
+    <div style="text-align: center; margin-bottom: 30px;">
+        <div style="display: inline-block; background: linear-gradient(45deg, #ff9a56, #ff6b6b); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <span style="font-size: 36px;">⏰</span>
+        </div>
+        <h2 style="margin: 0; color: #333; font-size: 28px; font-weight: 600;">Don't Miss Out!</h2>
+    </div>
+    
+    <p style="color: #555; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+        Hey comic lover! 👋 We wanted to give you a friendly heads up about your premium subscription.
+    </p>
+    
+    <div style="background: linear-gradient(45deg, #ff9a56, #ff6b6b); border-radius: 12px; padding: 25px; text-align: center; margin: 30px 0; color: white;">
+        <p style="margin: 0 0 10px 0; font-size: 16px; opacity: 0.9;">Your <strong>${planType}</strong> subscription expires on:</p>
+        <div style="font-size: 24px; font-weight: 700; margin: 15px 0; background: rgba(255,255,255,0.2); padding: 12px; border-radius: 8px;">
+            ${endDate.toISOString().split("T")[0]}
+        </div>
+        <p style="margin: 10px 0 0 0; font-size: 14px; opacity: 0.8;">Don't let the story end here!</p>
+    </div>
+    
+    <p style="color: #555; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+        Renew now to continue enjoying unlimited access to premium comics, ad-free reading, and exclusive content! 🌟
+    </p>
+    
+    <div style="text-align: center; margin: 35px 0;">
+        <a href="${renewUrl}" style="display: inline-block; background: linear-gradient(45deg, #4ecdc4, #44a08d); color: white; padding: 15px 35px; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 16px; letter-spacing: 0.5px; box-shadow: 0 6px 20px rgba(68, 160, 141, 0.3);">
+            🔄 Renew My Subscription
+        </a>
+    </div>
+    
+    <div style="background: #e8f5e8; border: 1px solid #c3e6c3; border-radius: 8px; padding: 15px; margin: 25px 0;">
+        <p style="margin: 0; color: #2d5a2d; font-size: 14px;">
+            <strong>💡 Pro Tip:</strong> Renewing early ensures you won't miss any new releases or lose access to your favorites!
+        </p>
+    </div>
+    
+    <p style="color: #666; font-size: 14px; text-align: center; margin-top: 30px;">
+        Questions about your subscription? We're here to help! 💬
+    </p>
+  `;
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: "OtakuSensei Premium Subscription Reminder",
-    text: `Dear User,\n\nThis is a reminder that your ${planType} premium subscription will end on ${
-      endDate.toISOString().split("T")[0]
-    }.\n\nPlease renew your subscription to continue enjoying premium comics!\n\nBest regards,\nOtakuSensei Team`,
-    html: `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-        <h2 style="color: #333; text-align: center;">Premium Subscription Reminder</h2>
-        <p>Dear User,</p>
-        <p>This is a reminder that your <strong>${planType}</strong> premium subscription with OtakuSensei will end on:</p>
-        <p style="text-align: center; font-size: 18px; font-weight: bold; margin: 10px 0;">${
-          endDate.toISOString().split("T")[0]
-        }</p>
-        <p>Please renew your subscription to continue enjoying unlimited access to premium comics.</p>
-        <div style="text-align: center; margin: 20px 0;">
-            <a href="${renewUrl}" style="background-color: #E8B5B8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Renew Subscription</a>
-        </div>
-        <p>If you have any questions, please contact our support team.</p>
-        <p>Best regards,<br>OtakuSensei Team</p>
-    </div>`,
+    subject: "⏰ Your OtakuSensei Premium is Expiring Soon!",
+    html: getEmailTemplate(content),
   };
 
   try {

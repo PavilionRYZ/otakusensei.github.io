@@ -12,7 +12,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { FaSun, FaMoon, FaBars, FaTimes, FaHome, FaBook, FaUser, FaSignInAlt, FaUserPlus, FaSignOutAlt } from "react-icons/fa";
+import { FaSun, FaMoon, FaBars, FaTimes, FaHome, FaBook, FaUser, FaSignInAlt, FaUserPlus, FaSignOutAlt, FaCrown } from "react-icons/fa";
 import { logout } from "../../Redux/Slices/authSlice";
 import { ThemeContext } from "../../lib/ThemeProvider";
 
@@ -40,13 +40,13 @@ const Header = () => {
     };
 
     const mobileMenuVariants = {
-        hidden: { 
-            opacity: 0, 
+        hidden: {
+            opacity: 0,
             x: "100%",
             transition: { duration: 0.3 }
         },
-        visible: { 
-            opacity: 1, 
+        visible: {
+            opacity: 1,
             x: 0,
             transition: { duration: 0.3 }
         }
@@ -95,6 +95,16 @@ const Header = () => {
                         >
                             <FaBook />
                             <span>Comics</span>
+                        </motion.span>
+                    </Link>
+                    <Link to="/upgrade">
+                        <motion.span
+                            className="text-md bg-yellow-400 text-yellow-900 px-2 py-1 rounded-lg flex items-center space-x-2"
+                            variants={navVariants}
+                            whileHover="hover"
+                        >
+                            <FaCrown />
+                            <span>Subscribe</span>
                         </motion.span>
                     </Link>
 
@@ -201,7 +211,7 @@ const Header = () => {
                             exit={{ opacity: 0 }}
                             onClick={closeMobileMenu}
                         />
-                        
+
                         {/* Mobile Menu */}
                         <motion.div
                             className="fixed top-0 right-0 h-full w-80 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 z-50 md:hidden shadow-2xl"
@@ -231,23 +241,34 @@ const Header = () => {
 
                                 {/* Navigation Links */}
                                 <nav className="space-y-4">
-                                    <Link 
-                                        to="/" 
+                                    <Link
+                                        to="/"
                                         onClick={closeMobileMenu}
                                         className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
                                     >
                                         <FaHome className="h-5 w-5" />
                                         <span className="text-lg">Home</span>
                                     </Link>
-                                    
-                                    <Link 
-                                        to="/comics" 
+
+                                    <Link
+                                        to="/comics"
                                         onClick={closeMobileMenu}
                                         className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
                                     >
                                         <FaBook className="h-5 w-5" />
                                         <span className="text-lg">Comics</span>
                                     </Link>
+
+                                    <Link
+                                        to="/upgrade"
+                                        onClick={closeMobileMenu}
+                                        className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                                    >
+                                        <FaCrown className="h-5 w-5" />
+                                        <span className="text-lg">Subscribe</span>
+                                    </Link>
+
+
 
                                     {/* Theme Toggle */}
                                     <button
@@ -270,15 +291,15 @@ const Header = () => {
                                     {/* Auth Section */}
                                     {isAuthenticated ? (
                                         <>
-                                            <Link 
-                                                to="/profile" 
+                                            <Link
+                                                to="/profile"
                                                 onClick={closeMobileMenu}
                                                 className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
                                             >
                                                 <FaUser className="h-5 w-5" />
                                                 <span className="text-lg">Profile</span>
                                             </Link>
-                                            
+
                                             <button
                                                 onClick={handleLogout}
                                                 className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors w-full text-left"
@@ -289,17 +310,17 @@ const Header = () => {
                                         </>
                                     ) : (
                                         <>
-                                            <Link 
-                                                to="/signin" 
+                                            <Link
+                                                to="/signin"
                                                 onClick={closeMobileMenu}
                                                 className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
                                             >
                                                 <FaSignInAlt className="h-5 w-5" />
                                                 <span className="text-lg">Sign In</span>
                                             </Link>
-                                            
-                                            <Link 
-                                                to="/signup" 
+
+                                            <Link
+                                                to="/signup"
                                                 onClick={closeMobileMenu}
                                                 className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
                                             >

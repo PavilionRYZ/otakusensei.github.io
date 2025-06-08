@@ -21,10 +21,15 @@ const persistConfig = {
 import userReducer from "./Slices/userSlice";
 import authReducer from "./Slices/authSlice";
 import comicReducer from "./Slices/comicSlice";
+import subscriptionReducer from "./Slices/subscriptionSlice";
+import paymentReducer from "./Slices/paymentSlice";
+
 const rootReducer = combineReducers({
   user: userReducer,
   auth: authReducer,
   comic: comicReducer,
+  subscription: subscriptionReducer,
+  payment: paymentReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

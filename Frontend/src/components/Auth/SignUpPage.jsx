@@ -79,7 +79,7 @@ const SignUpPage = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium  text-gray-100  dark:text-gray-9000  dark:text-gray-900 mb-2">First Name</label>
+                        <label className="block text-sm font-medium  text-gray-100 dark:text-gray-900 mb-2">First Name</label>
                         <div className="relative">
                             <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" />
                             <input

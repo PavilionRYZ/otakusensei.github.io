@@ -210,7 +210,7 @@ const ComicDetailsPage = () => {
   }
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className=" min-h-screen bg-gray-900 dark:bg-gray-100 ">
       {/* Breadcrumb */}
       <div className="container mx-auto px-6 py-4">
         <nav className="text-sm text-gray-500">
@@ -227,10 +227,10 @@ const ComicDetailsPage = () => {
           <div className="lg:w-2/3">
             {/* Title and Author */}
             <div className="mb-6">
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">{selectedComic.title}</h1>
-              <p className="text-gray-600 mb-1">
-                Genre: <span className="text-gray-800">{selectedComic.genres?.join(", ") || 'Action'}</span> | 
-                Author: <span className="text-gray-800">{selectedComic.author}</span>
+              <h1 className="text-4xl font-bold text-gray-100 dark:text-gray-900 mb-2">{selectedComic.title}</h1>
+              <p className="text-gray-50 dark:text-gray-900 mb-1">
+                Genre: <span className="text-gray-100 dark:text-gray-900">{selectedComic.genres?.join(", ") || 'Action'}</span> |
+                Author: <span className="text-gray-100 dark:text-gray-900">{selectedComic.author}</span>
               </p>
               {selectedComic.premium && (
                 <span className="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm font-medium">
@@ -241,8 +241,8 @@ const ComicDetailsPage = () => {
 
             {/* Synopsis */}
             <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">Synopsis</h2>
-              <p className="text-gray-700 leading-relaxed">{selectedComic.description}</p>
+              <h2 className="text-xl font-semibold text-gray-100 dark:text-gray-900 mb-3">Synopsis</h2>
+              <p className="text-gray-100 dark:text-gray-900 leading-relaxed">{selectedComic.description}</p>
             </div>
 
             {/* Rating Section */}
@@ -250,13 +250,13 @@ const ComicDetailsPage = () => {
               <div className="flex items-start gap-8">
                 {/* Overall Rating */}
                 <div className="text-center">
-                  <div className="text-5xl font-bold text-gray-900">
+                  <div className="text-5xl font-bold text-gray-100 dark:text-gray-900">
                     {selectedComic.averageRating?.toFixed(1) || '0.0'}
                   </div>
                   <div className="flex justify-center mt-2">
                     <StarRating rating={selectedComic.averageRating || 0} size={20} />
                   </div>
-                  <div className="text-gray-600 text-sm mt-1">
+                  <div className="text-gray-100 dark:text-gray-900 text-sm mt-1">
                     {selectedComic.reviews?.length || 0} reviews
                   </div>
                 </div>
@@ -272,14 +272,14 @@ const ComicDetailsPage = () => {
             <div className="flex gap-4 mb-8">
               <motion.button
                 onClick={() => selectedComic.chapters?.[0] && handleReadChapter(selectedComic.chapters[0])}
-                className="bg-red-300 hover:bg-red-400 text-gray-900 px-6 py-3 rounded-lg font-medium transition-colors"
+                className="bg-red-300 hover:bg-red-400 text-gray-100 dark:text-gray-900 px-6 py-3 rounded-lg font-medium transition-colors"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
                 Read Now
               </motion.button>
               <motion.button
-                className="border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2"
+                className="border border-gray-300 hover:bg-gray-50 text-gray-100 dark:text-gray-900 px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -290,8 +290,8 @@ const ComicDetailsPage = () => {
 
             {/* Reviews Section */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Reviews</h2>
-              
+              <h2 className="text-2xl font-bold text-gray-100 dark:text-gray-900 mb-6">Reviews</h2>
+
               {/* Reviews List */}
               {selectedComic.reviews?.length > 0 ? (
                 <div className="space-y-6">
@@ -299,19 +299,19 @@ const ComicDetailsPage = () => {
                     <div key={review._id} className="border-b border-gray-200 pb-6">
                       <div className="flex items-center gap-3 mb-3">
                         <img
-                          src={review.user.avatar || "https://via.placeholder.com/40?text=User"}
+                          src={review.user.avatar || "https://i.pinimg.com/736x/3f/dd/e4/3fdde421b22a34874e9be56a4277e04c.jpg"}
                           alt={review.user.firstName}
                           className="w-10 h-10 rounded-full object-cover"
                         />
                         <div>
-                          <div className="font-medium text-gray-900">
+                          <div className="font-medium text-gray-100 dark:text-gray-900">
                             {review.user.firstName} {review.user.lastName}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {new Date(review.createdAt).toLocaleDateString('en-US', { 
-                              year: 'numeric', 
-                              month: 'long', 
-                              day: 'numeric' 
+                          <div className="text-sm text-gray-100 dark:text-gray-900">
+                            {new Date(review.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
                             })}
                           </div>
                         </div>
@@ -319,24 +319,24 @@ const ComicDetailsPage = () => {
                       <div className="mb-2">
                         <StarRating rating={review.rating} size={16} />
                       </div>
-                      <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+                      <p className="text-gray-100 dark:text-gray-900 leading-relaxed">{review.comment}</p>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500">No reviews yet. Be the first to write one!</p>
+                <p className="text-gray-100 dark:text-gray-900">No reviews yet. Be the first to write one!</p>
               )}
 
               {/* Write Review Form */}
-              <div className="mt-8 bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Write a Review</h3>
+              <div className="mt-8 bg-gray-900 dark:bg-gray-100 text-white dark:text-black p-6 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-100 dark:text-gray-900 mb-4">Write a Review</h3>
                 <form onSubmit={handleSubmitReview}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Your Rating</label>
+                    <label className="block text-sm font-medium text-gray-100 dark:text-gray-900 mb-2">Your Rating</label>
                     <StarRating rating={rating} onClick={setRating} size={20} />
                   </div>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Your Review</label>
+                    <label className="block text-sm font-medium text-gray-100 dark:text-gray-900 mb-2">Your Review</label>
                     <textarea
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
@@ -346,7 +346,7 @@ const ComicDetailsPage = () => {
                   </div>
                   <motion.button
                     type="submit"
-                    className="bg-red-300 hover:bg-red-400 text-gray-900 px-6 py-2 rounded-lg font-medium transition-colors"
+                    className="bg-red-300 hover:bg-red-400 text-gray-100 dark:text-gray-900 px-6 py-2 rounded-lg font-medium transition-colors"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
