@@ -23,7 +23,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="bg-gray-900 dark:bg-gray-100 min-h-screen text-white dark:text-gray-900">
+    <div className="bg-gray-900 dark:bg-gray-100 min-h-screen text-white dark:text-gray-900 font-['Bubblegum_Sans']">
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 py-20 text-center">

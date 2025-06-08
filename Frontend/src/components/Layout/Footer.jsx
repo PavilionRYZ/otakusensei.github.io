@@ -5,37 +5,37 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
     return (
-        <footer className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 py-12">
+        <footer className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 py-12 font-['Bubblegum_Sans']">
             <div className="container mx-auto px-4">
                 {/* Navigation Links */}
                 <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-4 mb-8">
                     <Link
                         to="/genres"
-                        className="text-gray-600 hover:text-gray-800 transition-colors duration-200 text-sm font-medium"
+                        className="text-white hover:text-gray-200 dark:text-gray-900 dark:hover:text-gray-800 transition-colors duration-200 text-sm font-medium"
                     >
                         Genres
                     </Link>
                     <Link
                         to="/new-releases"
-                        className="text-gray-600 hover:text-gray-800 transition-colors duration-200 text-sm font-medium"
+                        className="text-white hover:text-gray-200 dark:text-gray-900 dark:hover:text-gray-800 transition-colors duration-200 text-sm font-medium"
                     >
                         New Releases
                     </Link>
                     <Link
                         to="/my-library"
-                        className="text-gray-600 hover:text-gray-800 transition-colors duration-200 text-sm font-medium"
+                        className="text-white hover:text-gray-200 dark:text-gray-900 dark:hover:text-gray-800 transition-colors duration-200 text-sm font-medium"
                     >
                         My Library
                     </Link>
                     <Link
                         to="/about"
-                        className="text-gray-600 hover:text-gray-800 transition-colors duration-200 text-sm font-medium"
+                        className="text-white hover:text-gray-200 dark:text-gray-900 dark:hover:text-gray-800 transition-colors duration-200 text-sm font-medium"
                     >
                         About Us
                     </Link>
                     <Link
                         to="/contact"
-                        className="text-gray-600 hover:text-gray-800 transition-colors duration-200 text-sm font-medium"
+                        className="text-white hover:text-gray-200 dark:text-gray-900 dark:hover:text-gray-800 transition-colors duration-200 text-sm font-medium"
                     >
                         Contact Us
                     </Link>
@@ -45,13 +45,13 @@ const Footer = () => {
                 <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-4 mb-8">
                     <Link
                         to="/privacy"
-                        className="text-gray-500 hover:text-gray-700 transition-colors duration-200 text-sm"
+                        className="text-white hover:text-gray-200 dark:text-gray-900 dark:hover:text-gray-800 transition-colors duration-200 text-sm"
                     >
                         Privacy Policy
                     </Link>
                     <Link
                         to="/terms"
-                        className="text-gray-500 hover:text-gray-700 transition-colors duration-200 text-sm"
+                        className="text-white hover:text-gray-200 dark:text-gray-900 dark:hover:text-gray-800 transition-colors duration-200 text-sm"
                     >
                         Terms of Service
                     </Link>
@@ -62,7 +62,7 @@ const Footer = () => {
                     {/* Twitter/X */}
                     <a
                         href="#"
-                        className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                        className="text-white hover:text-gray-200 dark:text-gray-900 dark:hover:text-gray-800 transition-colors duration-200"
                         aria-label="Twitter"
                     >
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -73,7 +73,7 @@ const Footer = () => {
                     {/* Facebook */}
                     <a
                         href="#"
-                        className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                        className="text-white hover:text-gray-200 dark:text-gray-900 dark:hover:text-gray-800 transition-colors duration-200"
                         aria-label="Facebook"
                     >
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -84,7 +84,7 @@ const Footer = () => {
                     {/* Instagram */}
                     <a
                         href="#"
-                        className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                        className="text-white hover:text-gray-200 dark:text-gray-900 dark:hover:text-gray-800 transition-colors duration-200"
                         aria-label="Instagram"
                     >
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

@@ -71,7 +71,7 @@ const ComicCard = ({ comic }) => {
       </motion.div>
 
       {/* Title (Outside the Image Container) */}
-      <h3 className="text-lg font-semibold text-white dark:text-gray-900 truncate mt-3 text-center w-48 sm:w-56 md:w-60 lg:w-52 xl:w-56">
+      <h3 className="text-lg font-semibold text-white dark:text-gray-900 font-['Bubblegum_Sans'] truncate mt-3 text-center w-48 sm:w-56 md:w-60 lg:w-52 xl:w-56">
         {comic.title}
       </h3>
     </div>

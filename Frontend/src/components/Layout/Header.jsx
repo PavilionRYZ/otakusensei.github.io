@@ -61,7 +61,7 @@ const Header = () => {
     };
 
     return (
-        <header className="sticky top-0 left-0 right-0 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 py-3 shadow-lg z-50">
+        <header className="sticky font-['Bubblegum_Sans'] top-0 left-0 right-0 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 py-3 shadow-lg z-50">
             <div className="container mx-auto flex justify-between items-center px-4">
                 {/* Logo */}
                 <Link to="/">

@@ -64,7 +64,7 @@ const SignUpPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#121A21] dark:bg-gray-50 px-4 py-8">
+        <div className="min-h-screen flex items-center justify-center bg-[#121A21] dark:bg-gray-50 px-4 py-8 font-['Bubblegum_Sans']">
             <motion.div
                 className="w-full max-w-md bg-gray-900 dark:bg-white rounded-lg shadow-sm p-8"
                 variants={containerVariants}

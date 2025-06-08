@@ -61,7 +61,7 @@ const SignInPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#121A21] dark:bg-gray-50  dark:text-black">
+        <div className="min-h-screen flex items-center justify-center bg-[#121A21] dark:bg-gray-50  dark:text-black font-['Bubblegum_Sans']">
             <motion.div
                 className="w-full max-w-md p-8 bg-gray-900 dark:bg-gray-100 text-white dark:text-black rounded-lg shadow-lg"
                 variants={containerVariants}

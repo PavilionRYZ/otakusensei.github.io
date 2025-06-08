@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { FaHeart, FaCrown, FaStar, FaStarHalfAlt, FaRegStar, FaBookmark } from "react-icons/fa";
 import { fetchComicById, likeComicById, submitReview } from "../../Redux/Slices/comicSlice";
 import { toast } from "react-toastify";
-
+import AnimeLoadingPage from "../Loading/AnimeLoadingPage";
 // Helper component to render star ratings
 const StarRating = ({ rating, totalStars = 5, onClick = null, size = 16 }) => {
   const stars = [];
@@ -196,7 +196,7 @@ const ComicDetailsPage = () => {
   if (isLoading) {
     return (
       <div className="bg-white min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading...</p>
+        <AnimeLoadingPage />
       </div>
     );
   }
@@ -210,7 +210,7 @@ const ComicDetailsPage = () => {
   }
 
   return (
-    <div className=" min-h-screen bg-gray-900 dark:bg-gray-100 ">
+    <div className=" min-h-screen bg-gray-900 dark:bg-gray-100 font-['Bubblegum_Sans']">
       {/* Breadcrumb */}
       <div className="container mx-auto px-6 py-4">
         <nav className="text-sm text-gray-500">
