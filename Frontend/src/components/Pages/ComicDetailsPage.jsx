@@ -6,6 +6,7 @@ import { FaHeart, FaCrown, FaStar, FaStarHalfAlt, FaRegStar, FaBookmark } from "
 import { fetchComicById, likeComicById, submitReview } from "../../Redux/Slices/comicSlice";
 import { toast } from "react-toastify";
 import AnimeLoadingPage from "../Loading/AnimeLoadingPage";
+
 // Helper component to render star ratings
 const StarRating = ({ rating, totalStars = 5, onClick = null, size = 16 }) => {
   const stars = [];
@@ -46,10 +47,9 @@ const StarRating = ({ rating, totalStars = 5, onClick = null, size = 16 }) => {
 const RatingsBarGraph = ({ reviews }) => {
   if (!reviews || reviews.length === 0) return null;
 
-  // Calculate the count of each rating (1 to 5)
-  const ratingCounts = [0, 0, 0, 0, 0]; // Index 0 is unused, 1-5 for ratings
+  const ratingCounts = [0, 0, 0, 0, 0];
   reviews.forEach((review) => {
-    const rating = Math.round(review.rating); // Round to nearest integer
+    const rating = Math.round(review.rating);
     if (rating >= 1 && rating <= 5) {
       ratingCounts[rating]++;
     }
@@ -92,10 +92,18 @@ const ComicDetailsPage = () => {
 
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [submitLoading, setSubmitLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchComicById({ id: id, populate: ["chapters", "reviews", "likes"] }));
+      dispatch(fetchComicById({ id, populate: ["chapters", "reviews", "likes"] }))
+        .unwrap()
+        .catch((err) => {
+          toast.error(err || "Failed to load comic", {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        });
     } else {
       toast.error("Invalid comic ID", {
         position: "top-right",
@@ -126,7 +134,7 @@ const ComicDetailsPage = () => {
       return;
     }
 
-    if (selectedComic.premium && !user?.hasPremium) {
+    if (selectedComic?.premium && !user?.hasPremium) {
       toast.error("Upgrade to a premium subscription to read this comic", {
         position: "top-right",
         autoClose: 3000,
@@ -138,7 +146,7 @@ const ComicDetailsPage = () => {
     navigate(`/read/${id}/chapter/${chapter.chapterNumber}`);
   };
 
-  const handleSubmitReview = (e) => {
+  const handleSubmitReview = async (e) => {
     e.preventDefault();
     if (!isAuthenticated) {
       toast.error("Please log in to write a review", {
@@ -149,7 +157,7 @@ const ComicDetailsPage = () => {
       return;
     }
 
-    if (selectedComic.premium && !user?.hasPremium) {
+    if (selectedComic?.premium && !user?.hasPremium) {
       toast.error("Upgrade to a premium subscription to review this comic", {
         position: "top-right",
         autoClose: 3000,
@@ -174,23 +182,50 @@ const ComicDetailsPage = () => {
       return;
     }
 
-    dispatch(submitReview({ id, rating, comment }))
-      .unwrap()
-      .then(() => {
-        toast.success("Review submitted successfully", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-        setRating(0);
-        setComment("");
-        dispatch(fetchComicById({ id: id, populate: ["chapters", "reviews", "likes"] }));
-      })
-      .catch((err) => {
-        toast.error(err, {
-          position: "top-right",
-          autoClose: 3000,
-        });
+    if (!selectedComic || selectedComic._id !== id) {
+      toast.error("Invalid comic ID or comic not loaded", {
+        position: "top-right",
+        autoClose: 3000,
       });
+      return;
+    }
+
+    setSubmitLoading(true);
+    try {
+      await dispatch(submitReview({ comicId: id, rating, comment })).unwrap();
+      toast.success("Review submitted successfully", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      setRating(0);
+      setComment("");
+      dispatch(fetchComicById({ id, populate: ["chapters", "reviews", "likes"] }));
+    } catch (err) {
+      toast.error(err || "Failed to submit review", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  // Fallback UI when selectedComic is not available
+  const renderFallbackContent = () => {
+    if (!selectedComic) {
+      return (
+        <div className="text-center text-gray-100 dark:text-gray-900 py-8">
+          <p>No comic data available. Please try again later.</p>
+          <button
+            onClick={() => dispatch(fetchComicById({ id, populate: ["chapters", "reviews", "likes"] }))}
+            className="mt-4 bg-red-300 hover:bg-red-400 text-gray-100 dark:text-gray-900 px-4 py-2 rounded-lg"
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
+    return null;
   };
 
   if (isLoading) {
@@ -201,172 +236,183 @@ const ComicDetailsPage = () => {
     );
   }
 
-  if (error || !selectedComic) {
-    return (
-      <div className="bg-white min-h-screen flex items-center justify-center">
-        <p className="text-red-500">{error || "Comic not found"}</p>
-      </div>
-    );
-  }
-
   return (
-    <div className=" min-h-screen bg-gray-900 dark:bg-gray-100 font-['Bubblegum_Sans']">
-      {/* Breadcrumb */}
+    <div className="min-h-screen bg-gray-900 dark:bg-gray-100 font-['Bubblegum_Sans']">
       <div className="container mx-auto px-6 py-4">
         <nav className="text-sm text-gray-500">
           <Link to="/comics" className="hover:text-gray-700">Comics</Link>
           <span className="mx-2">/</span>
-          <span>{selectedComic.genres?.[0] || 'Action'}</span>
+          <span>{selectedComic?.genres?.[0] || "Action"}</span>
         </nav>
       </div>
 
-      {/* Main Content */}
       <div className="container mx-auto px-6 pb-12">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Left Section - Comic Info */}
           <div className="lg:w-2/3">
-            {/* Title and Author */}
-            <div className="mb-6">
-              <h1 className="text-4xl font-bold text-gray-100 dark:text-gray-900 mb-2">{selectedComic.title}</h1>
-              <p className="text-gray-50 dark:text-gray-900 mb-1">
-                Genre: <span className="text-gray-100 dark:text-gray-900">{selectedComic.genres?.join(", ") || 'Action'}</span> |
-                Author: <span className="text-gray-100 dark:text-gray-900">{selectedComic.author}</span>
-              </p>
-              {selectedComic.premium && (
-                <span className="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm font-medium">
-                  Premium
-                </span>
-              )}
-            </div>
+            {renderFallbackContent()}
 
-            {/* Synopsis */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-100 dark:text-gray-900 mb-3">Synopsis</h2>
-              <p className="text-gray-100 dark:text-gray-900 leading-relaxed">{selectedComic.description}</p>
-            </div>
-
-            {/* Rating Section */}
-            <div className="mb-8">
-              <div className="flex items-start gap-8">
-                {/* Overall Rating */}
-                <div className="text-center">
-                  <div className="text-5xl font-bold text-gray-100 dark:text-gray-900">
-                    {selectedComic.averageRating?.toFixed(1) || '0.0'}
-                  </div>
-                  <div className="flex justify-center mt-2">
-                    <StarRating rating={selectedComic.averageRating || 0} size={20} />
-                  </div>
-                  <div className="text-gray-100 dark:text-gray-900 text-sm mt-1">
-                    {selectedComic.reviews?.length || 0} reviews
-                  </div>
+            {selectedComic && (
+              <>
+                {/* Title and Author */}
+                <div className="mb-6">
+                  <h1 className="text-4xl font-bold text-gray-100 dark:text-gray-900 mb-2">{selectedComic.title}</h1>
+                  <p className="text-gray-50 dark:text-gray-900 mb-1">
+                    Genre: <span className="text-gray-100 dark:text-gray-900">{selectedComic.genres?.join(", ") || "Action"}</span> |
+                    Author: <span className="text-gray-100 dark:text-gray-900">{selectedComic.author}</span>
+                  </p>
+                  {selectedComic.premium && (
+                    <span className="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm font-medium">
+                      Premium
+                    </span>
+                  )}
                 </div>
 
-                {/* Rating Distribution */}
-                <div className="flex-1">
-                  <RatingsBarGraph reviews={selectedComic.reviews} />
+                {/* Synopsis */}
+                <div className="mb-8">
+                  <h2 className="text-xl font-semibold text-gray-100 dark:text-gray-900 mb-3">Synopsis</h2>
+                  <p className="text-gray-100 dark:text-gray-900 leading-relaxed">{selectedComic.description}</p>
                 </div>
-              </div>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-4 mb-8">
-              <motion.button
-                onClick={() => selectedComic.chapters?.[0] && handleReadChapter(selectedComic.chapters[0])}
-                className="bg-red-300 hover:bg-red-400 text-gray-100 dark:text-gray-900 px-6 py-3 rounded-lg font-medium transition-colors"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Read Now
-              </motion.button>
-              <motion.button
-                className="border border-gray-300 hover:bg-gray-50 text-gray-100 dark:text-gray-900 px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <FaBookmark size={16} />
-                Add to Library
-              </motion.button>
-            </div>
-
-            {/* Reviews Section */}
-            <div>
-              <h2 className="text-2xl font-bold text-gray-100 dark:text-gray-900 mb-6">Reviews</h2>
-
-              {/* Reviews List */}
-              {selectedComic.reviews?.length > 0 ? (
-                <div className="space-y-6">
-                  {selectedComic.reviews.map((review) => (
-                    <div key={review._id} className="border-b border-gray-200 pb-6">
-                      <div className="flex items-center gap-3 mb-3">
-                        <img
-                          src={review.user.avatar || "https://i.pinimg.com/736x/3f/dd/e4/3fdde421b22a34874e9be56a4277e04c.jpg"}
-                          alt={review.user.firstName}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                        <div>
-                          <div className="font-medium text-gray-100 dark:text-gray-900">
-                            {review.user.firstName} {review.user.lastName}
-                          </div>
-                          <div className="text-sm text-gray-100 dark:text-gray-900">
-                            {new Date(review.createdAt).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mb-2">
-                        <StarRating rating={review.rating} size={16} />
-                      </div>
-                      <p className="text-gray-100 dark:text-gray-900 leading-relaxed">{review.comment}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-100 dark:text-gray-900">No reviews yet. Be the first to write one!</p>
-              )}
-
-              {/* Write Review Form */}
-              <div className="mt-8 bg-gray-900 dark:bg-gray-100 text-white dark:text-black p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-100 dark:text-gray-900 mb-4">Write a Review</h3>
-                <form onSubmit={handleSubmitReview}>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-100 dark:text-gray-900 mb-2">Your Rating</label>
-                    <StarRating rating={rating} onClick={setRating} size={20} />
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-100 dark:text-gray-900 mb-2">Your Review</label>
-                    <textarea
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      className="w-full h-24 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-transparent resize-none"
-                      placeholder="Write your review here..."
+                {/* Comic Image (on small screens) */}
+                <div className="mb-8 lg:hidden">
+                  <div className="relative w-full">
+                    <img
+                      src={selectedComic.coverImage}
+                      alt={selectedComic.title}
+                      className="w-full h-80 object-cover rounded-lg shadow-lg"
+                      loading="lazy"
                     />
+                    {selectedComic.premium && (
+                      <div className="absolute top-3 left-3 bg-yellow-400 text-yellow-900 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1">
+                        <FaCrown size={12} />
+                        Premium
+                      </div>
+                    )}
                   </div>
+                </div>
+
+                {/* Rating Section */}
+                <div className="mb-8">
+                  <div className="flex items-start gap-8">
+                    <div className="text-center">
+                      <div className="text-5xl font-bold text-gray-100 dark:text-gray-900">
+                        {selectedComic.averageRating?.toFixed(1) || "0.0"}
+                      </div>
+                      <div className="flex justify-center mt-2">
+                        <StarRating rating={selectedComic.averageRating || 0} size={20} />
+                      </div>
+                      <div className="text-gray-100 dark:text-gray-900 text-sm mt-1">
+                        {selectedComic.reviews?.length || 0} reviews
+                      </div>
+                    </div>
+
+                    <div className="flex-1">
+                      <RatingsBarGraph reviews={selectedComic.reviews} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-4 mb-8">
                   <motion.button
-                    type="submit"
-                    className="bg-red-300 hover:bg-red-400 text-gray-100 dark:text-gray-900 px-6 py-2 rounded-lg font-medium transition-colors"
+                    onClick={() => selectedComic.chapters?.[0] && handleReadChapter(selectedComic.chapters[0])}
+                    className="bg-red-300 hover:bg-red-400 text-gray-100 dark:text-gray-900 px-6 py-3 rounded-lg font-medium transition-colors"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    Submit Review
+                    Read Now
                   </motion.button>
-                </form>
-              </div>
-            </div>
+                  <motion.button
+                    className="border border-gray-300 hover:bg-gray-50 text-gray-100 dark:text-gray-900 px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <FaBookmark size={16} />
+                    Add to Library
+                  </motion.button>
+                </div>
+
+                {/* Reviews Section */}
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-100 dark:text-gray-900 mb-6">Reviews</h2>
+
+                  {selectedComic.reviews?.length > 0 ? (
+                    <div className="space-y-6">
+                      {selectedComic.reviews.map((review) => (
+                        <div key={review._id} className="border-b border-gray-200 pb-6">
+                          <div className="flex items-center gap-3 mb-3">
+                            <img
+                              src={review.user.avatar || "https://i.pinimg.com/736x/3f/dd/e4/3fdde421b22a34874e9be56a4277e04c.jpg"}
+                              alt={review.user.firstName}
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                            <div>
+                              <div className="font-medium text-gray-100 dark:text-gray-900">
+                                {review.user.firstName} {review.user.lastName}
+                              </div>
+                              <div className="text-sm text-gray-100 dark:text-gray-900">
+                                {new Date(review.createdAt).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mb-2">
+                            <StarRating rating={review.rating} size={16} />
+                          </div>
+                          <p className="text-gray-100 dark:text-gray-900 leading-relaxed">{review.comment}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-100 dark:text-gray-900">No reviews yet. Be the first to write one!</p>
+                  )}
+
+                  <div className="mt-8 bg-gray-900 dark:bg-gray-100 text-white dark:text-black p-6 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-100 dark:text-gray-900 mb-4">Write a Review</h3>
+                    <form onSubmit={handleSubmitReview}>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-100 dark:text-gray-900 mb-2">Your Rating</label>
+                        <StarRating rating={rating} onClick={setRating} size={20} />
+                      </div>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-100 dark:text-gray-900 mb-2">Your Review</label>
+                        <textarea
+                          value={comment}
+                          onChange={(e) => setComment(e.target.value)}
+                          className="w-full h-24 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-transparent resize-none"
+                          placeholder="Write your review here..."
+                        />
+                      </div>
+                      <motion.button
+                        type="submit"
+                        className="bg-red-300 hover:bg-red-400 text-gray-100 dark:text-gray-900 px-6 py-2 rounded-lg font-medium transition-colors"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        disabled={submitLoading}
+                      >
+                        {submitLoading ? "Submitting..." : "Submit Review"}
+                      </motion.button>
+                    </form>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Right Section - Comic Cover */}
-          <div className="lg:w-1/3">
+          {/* Right Section - Comic Cover (on large screens) */}
+          <div className="hidden lg:block lg:w-1/3">
             <div className="sticky top-6">
-              <div className="relative w-64 sm:w-72 md:w-80 lg:w-full mx-auto lg:mx-0">
+              <div className="relative w-full">
                 <img
-                  src={selectedComic.coverImage}
-                  alt={selectedComic.title}
+                  src={selectedComic?.coverImage || ""}
+                  alt={selectedComic?.title || "Comic"}
                   className="w-full h-80 sm:h-96 md:h-[420px] lg:h-[480px] object-cover rounded-lg shadow-lg"
+                  loading="lazy"
                 />
-                {selectedComic.premium && (
+                {selectedComic?.premium && (
                   <div className="absolute top-3 left-3 bg-yellow-400 text-yellow-900 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1">
                     <FaCrown size={12} />
                     Premium

@@ -47,7 +47,10 @@ export const fetchComics = createAsyncThunk(
           sortOrder,
         },
       });
-      return response.data.data;
+      return {
+        comics: response.data.data.comics || [],
+        pagination: response.data.data.pagination || null,
+      };
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch comics"
@@ -76,7 +79,7 @@ export const fetchComicById = createAsyncThunk(
       return {
         comic,
         hasLiked,
-        likesCount: comic.likes ? comic.likes.length : comic.likesCount || 0,
+        likesCount: comic.likesCount || (comic.likes ? comic.likes.length : 0),
       };
     } catch (error) {
       return rejectWithValue(
@@ -108,14 +111,56 @@ export const submitReview = createAsyncThunk(
   "comic/submitReview",
   async ({ comicId, rating, comment }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/comic/review/${comicId}`, {
+      const response = await axios.post(`${API_URL}/review/create/${comicId}`, {
         rating,
         comment,
       });
-      return response.data.data; // Updated comic with new review
+      return response.data.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to submit review"
+      );
+    }
+  }
+);
+
+export const deleteComic = createAsyncThunk(
+  "comic/deleteComic",
+  async (comicId, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete(`${API_URL}/comic/delete/${comicId}`);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to delete comic"
+      );
+    }
+  }
+);
+
+export const editComic = createAsyncThunk(
+  "comic/editComic",
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const response = await axios.put(`${API_URL}/comic/edit/${id}`, data);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to edit comic"
+      );
+    }
+  }
+);
+
+export const addComic = createAsyncThunk(
+  "comic/addComic",
+  async (comicData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${API_URL}/comic/add`, comicData);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to add comic"
       );
     }
   }
@@ -143,12 +188,11 @@ const comicSlice = createSlice({
         state.comics = action.payload.comics;
         state.pagination = action.payload.pagination;
         action.payload.comics.forEach((comic) => {
-          if (!state.likeStatus[comic._id]) {
-            state.likeStatus[comic._id] = {
-              hasLiked: false,
-              likesCount: comic.likesCount || 0,
-            };
-          }
+          state.likeStatus[comic._id] = {
+            ...state.likeStatus[comic._id],
+            hasLiked: false,
+            likesCount: comic.likesCount || 0,
+          };
         });
       })
       .addCase(fetchComics.rejected, (state, action) => {
@@ -202,6 +246,46 @@ const comicSlice = createSlice({
         state.selectedComic = action.payload; // Update comic with new review
       })
       .addCase(submitReview.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(deleteComic.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(deleteComic.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.comics = state.comics.filter(
+          (comic) => comic._id !== action.payload._id
+        );
+      })
+      .addCase(deleteComic.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(editComic.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(editComic.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.comics = state.comics.map((comic) =>
+          comic._id === action.payload._id ? action.payload : comic
+        );
+      })
+      .addCase(editComic.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(addComic.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(addComic.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.comics.push(action.payload);
+      })
+      .addCase(addComic.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       });

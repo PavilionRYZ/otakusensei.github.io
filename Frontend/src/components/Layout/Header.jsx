@@ -151,6 +151,15 @@ const Header = () => {
                                     {user?.firstName} {user?.lastName}
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
+                                {user?.role === "admin" && (
+                                    <DropdownMenuItem
+                                        className="hover:bg-gray-700 dark:hover:bg-gray-300"
+                                        onClick={() => navigate("/admin-profile")}
+                                    >
+                                        <FaUser className="mr-2" />
+                                        Admin Profile
+                                    </DropdownMenuItem>
+                                )}
                                 <DropdownMenuItem
                                     className="hover:bg-gray-700 dark:hover:bg-gray-300"
                                     onClick={() => navigate("/profile")}
@@ -176,7 +185,7 @@ const Header = () => {
                                 </Button>
                             </Link>
                             <Link to="/signup">
-                                <Button className="bg-[#243647] hover:bg-[#3d424d]  dark:bg-[#E8B5B8] dark:hover:bg-[#e59ea3] text-white dark:text-gray-900 flex items-center space-x-2">
+                                <Button className="bg-[#243647] hover:bg-[#3d424d] dark:bg-[#E8B5B8] dark:hover:bg-[#e59ea3] text-white dark:text-gray-900 flex items-center space-x-2">
                                     <FaUserPlus />
                                     <span>Signup</span>
                                 </Button>
@@ -268,7 +277,27 @@ const Header = () => {
                                         <span className="text-lg">Subscribe</span>
                                     </Link>
 
+                                    {isAuthenticated && user?.role === "admin" && (
+                                        <Link
+                                            to="/admin-profile"
+                                            onClick={closeMobileMenu}
+                                            className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                                        >
+                                            <FaUser className="h-5 w-5" />
+                                            <span className="text-lg">Admin Profile</span>
+                                        </Link>
+                                    )}
 
+                                    {isAuthenticated && (
+                                        <Link
+                                            to="/profile"
+                                            onClick={closeMobileMenu}
+                                            className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                                        >
+                                            <FaUser className="h-5 w-5" />
+                                            <span className="text-lg">Profile</span>
+                                        </Link>
+                                    )}
 
                                     {/* Theme Toggle */}
                                     <button
@@ -290,24 +319,13 @@ const Header = () => {
 
                                     {/* Auth Section */}
                                     {isAuthenticated ? (
-                                        <>
-                                            <Link
-                                                to="/profile"
-                                                onClick={closeMobileMenu}
-                                                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
-                                            >
-                                                <FaUser className="h-5 w-5" />
-                                                <span className="text-lg">Profile</span>
-                                            </Link>
-
-                                            <button
-                                                onClick={handleLogout}
-                                                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors w-full text-left"
-                                            >
-                                                <FaSignOutAlt className="h-5 w-5" />
-                                                <span className="text-lg">Logout</span>
-                                            </button>
-                                        </>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors w-full text-left"
+                                        >
+                                            <FaSignOutAlt className="h-5 w-5" />
+                                            <span className="text-lg">Logout</span>
+                                        </button>
                                     ) : (
                                         <>
                                             <Link

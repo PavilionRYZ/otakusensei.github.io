@@ -32,9 +32,71 @@ const addComic = async (req, res, next) => {
   }
 };
 
+const deleteComic = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(new ErrorHandler("Invalid comic ID", 400));
+    }
+    const comic = await Comic.findById(id);
+    if (!comic) {
+      return next(new ErrorHandler("Comic not found", 404));
+    }
+
+    await Review.deleteMany({ _id: { $in: comic.reviews } });
+    await Chapter.deleteMany({ _id: { $in: comic.chapters } });
+    await comic.deleteOne();
+    res.status(200).json({
+      success: true,
+      message: "Comic deleted successfully",
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+};
+
+const editComic = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return next(new ErrorHandler("Invalid comic ID", 400));
+    }
+    const comic = await Comic.findById(id);
+    if (!comic) {
+      return next(new ErrorHandler("Comic not found", 404));
+    }
+    const { title, author, description, genres, coverImage, premium } =
+      req.body;
+
+    const existingComic = await Comic.findOne({
+      title,
+      author,
+      _id: { $ne: id },
+    });
+    if (existingComic) {
+      return next(
+        new ErrorHandler("Comic with this title and author already exists", 400)
+      );
+    }
+    comic.title = title;
+    comic.author = author;
+    comic.description = description;
+    comic.genres = genres;
+    comic.coverImage = coverImage;
+    comic.premium = premium;
+    await comic.save();
+    res.status(200).json({
+      success: true,
+      message: "Comic updated successfully",
+      comic,
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+};
+
 const getComics = async (req, res, next) => {
   try {
-    // Extract query parameters
     const {
       page = 1,
       limit = 10,
@@ -47,9 +109,9 @@ const getComics = async (req, res, next) => {
       exactMatch = "false",
       sortBy = "createdAt",
       sortOrder = "desc",
+      matchAllGenres = "false",
     } = req.query;
 
-    // Validate pagination parameters
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
     if (isNaN(pageNum) || pageNum < 1) {
@@ -59,7 +121,6 @@ const getComics = async (req, res, next) => {
       return next(new ErrorHandler("Limit must be between 1 and 100", 400));
     }
 
-    // Validate sort parameters
     const validSortFields = [
       "createdAt",
       "title",
@@ -79,10 +140,8 @@ const getComics = async (req, res, next) => {
       return next(new ErrorHandler("SortOrder must be 'asc' or 'desc'", 400));
     }
 
-    // Build the query
     let query = {};
 
-    // Search by title, author, or description
     if (search) {
       const searchRegex = exactMatch === "true" ? `^${search}$` : search;
       const searchOptions = exactMatch === "true" ? "" : "i";
@@ -93,7 +152,6 @@ const getComics = async (req, res, next) => {
       ];
     }
 
-    // Filter by genres
     if (genres) {
       const genreArray = genres
         .split(",")
@@ -102,10 +160,10 @@ const getComics = async (req, res, next) => {
       if (genreArray.length === 0) {
         return next(new ErrorHandler("Genres must be a non-empty string", 400));
       }
-      query.genres = { $in: genreArray };
+      query.genres =
+        matchAllGenres === "true" ? { $all: genreArray } : { $in: genreArray };
     }
 
-    // Filter by premium
     if (premium !== undefined) {
       if (!["true", "false"].includes(premium)) {
         return next(new ErrorHandler("Premium must be 'true' or 'false'", 400));
@@ -113,7 +171,6 @@ const getComics = async (req, res, next) => {
       query.premium = premium === "true";
     }
 
-    // Filter by createdAfter date
     if (createdAfter) {
       const date = new Date(createdAfter);
       if (isNaN(date.getTime())) {
@@ -122,11 +179,8 @@ const getComics = async (req, res, next) => {
       query.createdAt = { $gte: date };
     }
 
-    // Aggregate to calculate averageRating and likesCount
-    let comicsWithRatings = await Comic.aggregate([
-      // Match the base query
+    let pipeline = [
       { $match: query },
-      // Lookup reviews
       {
         $lookup: {
           from: "reviews",
@@ -135,7 +189,6 @@ const getComics = async (req, res, next) => {
           as: "reviewsData",
         },
       },
-      // Add averageRating field
       {
         $addFields: {
           averageRating: {
@@ -148,52 +201,37 @@ const getComics = async (req, res, next) => {
           likesCount: { $size: "$likes" },
         },
       },
-      // Filter by minRating
-      ...(minRating
-        ? [
-            {
-              $match: {
-                averageRating: { $gte: parseFloat(minRating) },
-              },
-            },
-          ]
-        : []),
-      // Filter by minLikes
-      ...(minLikes
-        ? [
-            {
-              $match: {
-                likesCount: { $gte: parseInt(minLikes, 10) },
-              },
-            },
-          ]
-        : []),
-      // Sort
-      {
-        $sort: {
-          [sortBy === "averageRating"
-            ? "averageRating"
-            : sortBy === "likesCount"
-            ? "likesCount"
-            : sortBy]: sortOrder === "asc" ? 1 : -1,
-        },
-      },
-      // Pagination
-      { $skip: (pageNum - 1) * limitNum },
-      { $limit: limitNum },
-      // Project to exclude large fields
-      {
-        $project: {
-          reviews: 0,
-          reviewsData: 0,
-          chapters: 0,
-          likes: 0,
-        },
-      },
-    ]);
+    ];
 
-    // Get total count for pagination metadata
-    const totalComics = await Comic.aggregate([
+    if (minRating) {
+      pipeline.push({
+        $match: { averageRating: { $gte: parseFloat(minRating) } },
+      });
+    }
+    if (minLikes) {
+      pipeline.push({
+        $match: { likesCount: { $gte: parseInt(minLikes, 10) } },
+      });
+    }
+
+    pipeline.push({
+      $sort: {
+        [sortBy === "averageRating"
+          ? "averageRating"
+          : sortBy === "likesCount"
+          ? "likesCount"
+          : sortBy]: sortOrder === "asc" ? 1 : -1,
+      },
+    });
+    pipeline.push({ $skip: (pageNum - 1) * limitNum });
+    pipeline.push({ $limit: limitNum });
+    pipeline.push({
+      $project: { reviews: 0, reviewsData: 0, chapters: 0, likes: 0 },
+    });
+
+    let comicsWithRatings = await Comic.aggregate(pipeline);
+
+    const totalPipeline = [
       { $match: query },
       {
         $lookup: {
@@ -212,29 +250,23 @@ const getComics = async (req, res, next) => {
               else: { $avg: "$reviewsData.rating" },
             },
           },
+          likesCount: { $size: "$likes" },
         },
       },
-      ...(minRating
-        ? [
-            {
-              $match: {
-                averageRating: { $gte: parseFloat(minRating) },
-              },
-            },
-          ]
-        : []),
-      ...(minLikes
-        ? [
-            {
-              $match: {
-                likesCount: { $size: "$likes" },
-              },
-            },
-          ]
-        : []),
-      { $count: "total" },
-    ]);
+    ];
+    if (minRating) {
+      totalPipeline.push({
+        $match: { averageRating: { $gte: parseFloat(minRating) } },
+      });
+    }
+    if (minLikes) {
+      totalPipeline.push({
+        $match: { likesCount: { $gte: parseInt(minLikes, 10) } },
+      });
+    }
+    totalPipeline.push({ $count: "total" });
 
+    const totalComics = await Comic.aggregate(totalPipeline);
     const total = totalComics.length > 0 ? totalComics[0].total : 0;
 
     res.status(200).json({
@@ -261,21 +293,17 @@ const getComicById = async (req, res, next) => {
   try {
     const comicId = req.params.id;
 
-    // Validate comicId
     if (!mongoose.Types.ObjectId.isValid(comicId)) {
       return next(new ErrorHandler("Invalid Comic ID", 400));
     }
 
-    // Build the query
     let query = Comic.findById(comicId);
 
-    // Selective population based on query parameters
     const { populate } = req.query;
     const populateFields = populate
       ? populate.split(",").map((field) => field.trim())
       : [];
 
-    // Populate reviews if requested
     if (populateFields.includes("reviews")) {
       query = query.populate({
         path: "reviews",
@@ -284,16 +312,14 @@ const getComicById = async (req, res, next) => {
       });
     }
 
-    // Populate chapters if requested (exclude pdfUrl)
     if (populateFields.includes("chapters")) {
       query = query.populate({
         path: "chapters",
-        select: "title chapterNumber premium availableOffline createdAt", // Exclude pdfUrl
+        select: "title chapterNumber premium availableOffline createdAt",
         options: { sort: { chapterNumber: 1 } },
       });
     }
 
-    // Populate likes if requested
     if (populateFields.includes("likes")) {
       query = query.populate({
         path: "likes",
@@ -307,9 +333,22 @@ const getComicById = async (req, res, next) => {
       return next(new ErrorHandler("Comic not found", 404));
     }
 
-    // Compute averageRating manually if needed
+    // Compute averageRating using aggregation or populated reviews
+    let averageRating = 0;
+    if (populateFields.includes("reviews") && comic.reviews.length > 0) {
+      averageRating =
+        comic.reviews.reduce((sum, review) => sum + review.rating, 0) /
+        comic.reviews.length;
+    } else {
+      const reviewAgg = await Review.aggregate([
+        { $match: { _id: { $in: comic.reviews } } },
+        { $group: { _id: null, avgRating: { $avg: "$rating" } } },
+      ]);
+      averageRating = reviewAgg.length > 0 ? reviewAgg[0].avgRating : 0;
+    }
+
     const comicResponse = comic.toObject();
-    comicResponse.averageRating = comic.averageRating || 0;
+    comicResponse.averageRating = averageRating;
 
     res.status(200).json({
       success: true,
@@ -331,33 +370,25 @@ const likeComic = async (req, res, next) => {
     const { id: comicId } = req.params;
     const userId = req.user._id;
 
-    // Validate comicId
     if (!mongoose.Types.ObjectId.isValid(comicId)) {
       return next(new ErrorHandler("Invalid Comic ID", 400));
     }
 
-    // Check if comic exists
     const comic = await Comic.findById(comicId);
     if (!comic) {
       return next(new ErrorHandler("Comic not found", 404));
     }
 
-    // Check if user exists (optional, since req.user should be valid)
     const userExists = await User.findById(userId);
     if (!userExists) {
       return next(new ErrorHandler("User not found", 404));
     }
 
-    // Check if user has already liked the comic
-    const hasLiked = comic.likes.includes(userId);
+    const hasLiked = comic.likes.some((id) => id.equals(userId));
 
     if (hasLiked) {
-      // Unlike: Remove userId from likes
-      comic.likes = comic.likes.filter(
-        (id) => id.toString() !== userId.toString()
-      );
+      comic.likes = comic.likes.filter((id) => !id.equals(userId));
     } else {
-      // Like: Add userId to likes
       comic.likes.push(userId);
     }
 
@@ -383,4 +414,4 @@ const likeComic = async (req, res, next) => {
   }
 };
 
-export { addComic, getComics, getComicById, likeComic };
+export { addComic, getComics, getComicById, likeComic, deleteComic, editComic };

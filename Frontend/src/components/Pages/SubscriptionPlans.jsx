@@ -24,13 +24,18 @@ const SubscriptionPlans = () => {
     }, [dispatch]);
 
     const handlePurchase = (planType) => {
+        if (user?.role === "admin") {
+            toast.info("Admin users cannot purchase subscription plans.");
+            return;
+        }
         if (isAuthenticated) {
             navigate(`/payment/${planType}`);
         } else {
-            navigate(`/signin?redirect=/payment/${planType}`);
             toast.info("Please sign in to purchase a subscription plan.");
+            navigate(`/signin?redirect=/payment/${planType}`);
         }
     };
+
 
     const getPlanFeatures = (planType) => {
         switch (planType?.toLowerCase()) {
@@ -79,21 +84,87 @@ const SubscriptionPlans = () => {
 
                 {/* User Subscription Status Message */}
                 {!isLoading && (
-                    <div className="mb-8 p-4 rounded-lg text-center">
+                    <div className="mb-8 max-w-4xl mx-auto">
                         {isAuthenticated ? (
-                            user?.subscription?.plan === "premium" ? (
-                                <p className="text-green-600 bg-green-50 border border-green-200">
-                                    You are already a premium user.
-                                </p>
+                            user.role === "admin" ? (
+                                <div className="relative overflow-hidden bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-xl p-6 shadow-sm">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
+                                    <div className="relative flex items-center space-x-3">
+                                        <div className="flex-shrink-0">
+                                            <div className="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center">
+                                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-indigo-900 mb-1">Admin Access</h3>
+                                            <p className="text-indigo-700 text-sm">You have unlimited access to all comics — no subscription needed!</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : user?.subscription?.plan === "premium" ? (
+                                <div className="relative overflow-hidden bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl p-6 shadow-sm">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
+                                    <div className="relative flex items-center space-x-3">
+                                        <div className="flex-shrink-0">
+                                            <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
+                                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-emerald-900 mb-1">Premium Reader</h3>
+                                            <p className="text-emerald-700 text-sm">Enjoy exclusive comics and early releases!</p>
+                                        </div>
+                                    </div>
+                                </div>
                             ) : (
-                                <p className="text-red-600 bg-red-50 border border-red-200">
-                                    Purchase any subscription to be a premium user.
-                                </p>
+                                <div className="relative overflow-hidden bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
+                                    <div className="relative flex items-center justify-between">
+                                        <div className="flex items-center space-x-3">
+                                            <div className="flex-shrink-0">
+                                                <div className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center">
+                                                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-semibold text-amber-900 mb-1">Unlock Premium</h3>
+                                                <p className="text-amber-700 text-sm">Get exclusive comics and early releases!</p>
+                                            </div>
+                                        </div>
+                                        <button className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors duration-200">
+                                            Subscribe Now
+                                        </button>
+                                    </div>
+                                </div>
                             )
                         ) : (
-                            <p className="text-red-600 bg-red-50 border border-red-200">
-                                Please login to purchase any plan.
-                            </p>
+                            <div className="relative overflow-hidden bg-gradient-to-r from-slate-50 to-gray-50 border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
+                                <div className="relative flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="flex-shrink-0">
+                                            <div className="w-10 h-10 bg-slate-500 rounded-full flex items-center justify-center">
+                                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v2H2v-4l4.257-4.257A6 6 0 1118 8zm-6-4a1 1 0 100 2 2 2 0 012 2 1 1 0 102 0 4 4 0 00-4-4z" clipRule="evenodd" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-slate-900 mb-1">Access Required</h3>
+                                            <p className="text-slate-700 text-sm">Log in to access subscriptions and exclusive comics</p>
+                                        </div>
+                                    </div>
+                                    <button className="bg-slate-500 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors duration-200">
+                                        Log In
+                                    </button>
+                                </div>
+                            </div>
                         )}
                     </div>
                 )}
@@ -136,10 +207,22 @@ const SubscriptionPlans = () => {
 
                                         <button
                                             onClick={() => handlePurchase(plan.planType)}
-                                            className="w-full bg-[#243647] dark:bg-[#E8B5B8] dark:hover:bg-[#e59ea3] hover:bg-gray-800 dark:text-gray-900 text-gray-100 font-medium py-3 px-6 rounded-lg transition-colors duration-200 mb-6"
+                                            disabled={
+                                                user?.role === "admin" ||
+                                                user?.subscription?.plan === "premium"
+                                            }
+                                            className={`w-full ${user?.role === "admin" || user?.subscription?.plan === "premium"
+                                                    ? "bg-gray-600 cursor-not-allowed dark:bg-gray-400 dark:text-gray-700"
+                                                    : "bg-[#243647] dark:bg-[#E8B5B8] dark:hover:bg-[#e59ea3] hover:bg-gray-800 dark:text-gray-900 text-gray-100"
+                                                } font-medium py-3 px-6 rounded-lg transition-colors duration-200 mb-6`}
                                         >
-                                            Subscribe
+                                            {user?.role === "admin"
+                                                ? "You Have Admin Privileges"
+                                                : user?.subscription?.plan === "premium"
+                                                    ? "Alrady a Premium User"
+                                                    : "Subscribe"}
                                         </button>
+
 
                                         <div className="space-y-3">
                                             {features.map((feature, index) => (

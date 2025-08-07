@@ -14,7 +14,8 @@ import PageNotFound from './components/Pages/PageNotFound';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import { useSelector } from 'react-redux';
 import AnimeLoadingPage from './components/Loading/AnimeLoadingPage';
-
+import ProfilePage from './components/Auth/ProfilePage';
+import AdminDashboard from './components/Admin/AdminDashboard';
 const App = () => {
   const { isLoading } = useSelector((state) => state.auth);
 
@@ -54,6 +55,23 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute redirectTo="/login" forAuth={false}>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin-profile"
+                  element={
+                    <ProtectedRoute redirectTo="/login" forAuth={false}>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+
                 <Route path="/payment/:planType" element={<PaymentPage />} />
                 <Route path="/comics/:id" element={<ComicDetailsPage />} />
                 <Route path="/upgrade" element={<SubscriptionPlans />} />

@@ -24,7 +24,7 @@ const PaymentForm = ({ clientSecret, plan, paymentId }) => {
         city: "",
         state: "",
         postal_code: "",
-        country: "IN", // Default to India, can be made dynamic if needed
+        country: "IN", // Default to India
     });
 
     const handleAddressChange = (event) => {
@@ -65,26 +65,59 @@ const PaymentForm = ({ clientSecret, plan, paymentId }) => {
             });
 
             if (error) {
-                toast.error(error.message);
-                setIsProcessing(false);
-                return;
+                // Check if the error is related to r.stripe.com being blocked
+                if (error.message.includes("r.stripe.com")) {
+                    toast.warn(
+                        "Some Stripe services are being blocked by your browser (e.g., ad blocker). The payment may still succeed. Please wait."
+                    );
+                } else {
+                    toast.error(error.message);
+                    setIsProcessing(false);
+                    return;
+                }
             }
 
-            if (paymentIntent.status === "succeeded") {
-                // Verify payment with backend
-                await dispatch(verifyPayment({ paymentId }))
-                    .unwrap()
-                    .then(() => {
-                        toast.success("Payment successful! You are now a premium user.");
-                        dispatch(clearPaymentState());
-                        navigate("/");
-                    })
-                    .catch((err) => {
-                        toast.error(err || "Failed to verify payment");
-                    });
+            // Proceed with verification even if r.stripe.com requests fail
+            if (!error || paymentIntent?.status === "succeeded") {
+                try {
+                    await dispatch(verifyPayment({ paymentId }))
+                        .unwrap()
+                        .then(() => {
+                            toast.success("Payment successful! You are now a premium user.");
+                            dispatch(clearPaymentState());
+                            navigate("/");
+                        })
+                        .catch((err) => {
+                            toast.error(err || "Failed to verify payment");
+                        });
+                } catch (verifyError) {
+                    toast.error("Payment verification failed. Please contact support.");
+                }
             }
         } catch (err) {
-            toast.error("Payment failed. Please try again.");
+            // Handle generic errors, including FetchError from r.stripe.com
+            if (err.message && err.message.includes("r.stripe.com")) {
+                toast.warn(
+                    "Stripe telemetry is being blocked by your browser (e.g., ad blocker). The payment may still succeed. Verifying..."
+                );
+                // Attempt to verify the payment anyway
+                try {
+                    await dispatch(verifyPayment({ paymentId }))
+                        .unwrap()
+                        .then(() => {
+                            toast.success("Payment successful! You are now a premium user.");
+                            dispatch(clearPaymentState());
+                            navigate("/");
+                        })
+                        .catch((verifyErr) => {
+                            toast.error(verifyErr || "Failed to verify payment");
+                        });
+                } catch (verifyError) {
+                    toast.error("Payment verification failed. Please contact support.");
+                }
+            } else {
+                toast.error("Payment failed. Please try again.");
+            }
         } finally {
             setIsProcessing(false);
         }
@@ -157,7 +190,7 @@ const PaymentForm = ({ clientSecret, plan, paymentId }) => {
                             className="w-full p-2 border rounded"
                             placeholder="Country"
                             required
-                            disabled // Default to "IN" for India
+                            disabled
                         />
                     </div>
                 </div>

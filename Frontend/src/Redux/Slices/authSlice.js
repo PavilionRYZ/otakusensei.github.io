@@ -3,7 +3,6 @@ import axios from "axios";
 
 const API_URL = `${import.meta.env.VITE_API_URL}/api/v1`;
 
-// Configure axios to include credentials (for HTTP-only cookies)
 axios.defaults.withCredentials = true;
 
 const initialState = {
@@ -80,18 +79,6 @@ export const loadUser = createAsyncThunk(
   }
 );
 
-// export const checkGoogleLogin = createAsyncThunk(
-//   "auth/checkGoogleLogin",
-//   async (_, { rejectWithValue }) => {
-//     try {
-//       const response = await axios.get(`${API_URL}/user`);
-//       return response.data.user;
-//     } catch (error) {
-//       return rejectWithValue(error.response.data);
-//     }
-//   }
-// );
-
 export const googleAuth = createAsyncThunk(
   "auth/googleAuth",
   async (token, { rejectWithValue }) => {
@@ -140,6 +127,38 @@ export const resetPassword = createAsyncThunk(
   }
 );
 
+export const updateProfile = createAsyncThunk(
+  "auth/updateProfile",
+  async (profileData, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch(
+        `${API_URL}/user/update-profile`,
+        profileData
+      );
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to update profile"
+      );
+    }
+  }
+);
+
+export const updatePassword = createAsyncThunk(
+  "auth/updatePassword",
+  async ({ oldPassword, newPassword }, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch(`${API_URL}/user/update-password`, {
+        oldPassword,
+        newPassword,
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data || { message: error.message });
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -152,7 +171,6 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Signup
       .addCase(signup.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -166,7 +184,6 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload.message;
       })
-      // Verify OTP
       .addCase(verifyOtp.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -182,7 +199,6 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload.message;
       })
-      // Login
       .addCase(login.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -200,7 +216,6 @@ const authSlice = createSlice({
         state.user = null;
         state.error = action.payload.message;
       })
-      // Logout
       .addCase(logout.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -216,7 +231,6 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload.message;
       })
-      // Load User
       .addCase(loadUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -231,7 +245,6 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
       })
-      // Check Google Login
       .addCase(googleAuth.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -246,7 +259,6 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload?.message || "Google login failed";
       })
-      // Forgot Password
       .addCase(forgotPassword.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -260,7 +272,6 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload.message;
       })
-      // Reset Password
       .addCase(resetPassword.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -273,6 +284,33 @@ const authSlice = createSlice({
       .addCase(resetPassword.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload.message;
+      })
+      .addCase(updateProfile.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+        state.message = null;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload;
+        state.message = "Profile updated successfully";
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(updatePassword.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+        state.message = null;
+      })
+      .addCase(updatePassword.fulfilled, (state) => {
+        state.isLoading = false;
+        state.message = "Password updated successfully";
+      })
+      .addCase(updatePassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
       });
   },
 });

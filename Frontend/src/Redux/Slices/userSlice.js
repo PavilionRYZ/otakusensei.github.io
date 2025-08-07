@@ -21,13 +21,15 @@ export const updateProfile = createAsyncThunk(
         `${API_URL}/user/update-profile`,
         profileData
       );
-      return response.data.data; // Backend returns updated user in "data" field
+      return response.data.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to update profile"
+      );
     }
   }
 );
-    
+
 export const updatePassword = createAsyncThunk(
   "user/updatePassword",
   async ({ oldPassword, newPassword }, { rejectWithValue }) => {
@@ -38,7 +40,7 @@ export const updatePassword = createAsyncThunk(
       });
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response.data || { message: error.message });
     }
   }
 );

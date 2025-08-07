@@ -18,14 +18,14 @@ const persistConfig = {
 };
 
 //import reducers
-import userReducer from "./Slices/userSlice";
+// import userReducer from "./Slices/userSlice";
 import authReducer from "./Slices/authSlice";
 import comicReducer from "./Slices/comicSlice";
 import subscriptionReducer from "./Slices/subscriptionSlice";
 import paymentReducer from "./Slices/paymentSlice";
 
 const rootReducer = combineReducers({
-  user: userReducer,
+  // user: userReducer,
   auth: authReducer,
   comic: comicReducer,
   subscription: subscriptionReducer,

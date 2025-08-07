@@ -36,7 +36,16 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: false,
       minlength: 6,
-      maxlength: 12,
+      validate: {
+        validator: function (value) {
+          if (!value || value.startsWith("$2b$")) {
+            return true;
+          }
+          return value.length <= 12;
+        },
+        message:
+          "Password must be between 6 and 12 characters long before hashing",
+      },
     },
     avatar: {
       type: String,
