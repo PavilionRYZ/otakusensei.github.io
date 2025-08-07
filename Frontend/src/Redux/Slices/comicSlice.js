@@ -12,6 +12,7 @@ const initialState = {
   isLoading: false,
   error: null,
   likeStatus: {},
+  totalComics: 0,
 };
 
 export const fetchComics = createAsyncThunk(
@@ -54,6 +55,20 @@ export const fetchComics = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch comics"
+      );
+    }
+  }
+);
+
+export const totalComics = createAsyncThunk(
+  "comic/totalComics",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API_URL}/comic/total`);
+      return response.data.data.total;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch total comics"
       );
     }
   }
@@ -199,6 +214,18 @@ const comicSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+      .addCase(totalComics.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(totalComics.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.totalComics = action.payload;
+      })
+      .addCase(totalComics.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
       .addCase(fetchComicById.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -243,7 +270,7 @@ const comicSlice = createSlice({
       })
       .addCase(submitReview.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.selectedComic = action.payload; // Update comic with new review
+        state.selectedComic = action.payload;
       })
       .addCase(submitReview.rejected, (state, action) => {
         state.isLoading = false;

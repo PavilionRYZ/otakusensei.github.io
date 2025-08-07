@@ -194,9 +194,29 @@ const getSubscriptionPlans = async (req, res, next) => {
   }
 };
 
+const premiumUsers = async (req, res, next) => {
+  try {
+    const totalPremiumUsers = await User.countDocuments({
+      "subscription.plan": "premium",
+    });
+    res.status(200).json({
+      success: true,
+      message: "Total number of premium users retrieved successfully",
+      data: totalPremiumUsers,
+    });
+  } catch (error) {
+    return next(
+      new ErrorHandler(
+        `Failed to fetch total number of users with subscription: ${error.message}`,
+        500
+      )
+    );
+  }
+};
 export {
   initiatePayment,
   verifyPayment,
   setSubscriptionPlan,
   getSubscriptionPlans,
+  premiumUsers,
 };

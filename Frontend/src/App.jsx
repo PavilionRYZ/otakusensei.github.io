@@ -16,6 +16,9 @@ import { useSelector } from 'react-redux';
 import AnimeLoadingPage from './components/Loading/AnimeLoadingPage';
 import ProfilePage from './components/Auth/ProfilePage';
 import AdminDashboard from './components/Admin/AdminDashboard';
+import ManageSubscriptions from './components/Admin/ManageSubscriptions';
+
+
 const App = () => {
   const { isLoading } = useSelector((state) => state.auth);
 
@@ -71,6 +74,15 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/admin-subscriptions"
+                  element={
+                    <ProtectedRoute redirectTo="/login" forAuth={false}>
+                      <ManageSubscriptions />
+                    </ProtectedRoute>
+                  }
+                />
+
 
                 <Route path="/payment/:planType" element={<PaymentPage />} />
                 <Route path="/comics/:id" element={<ComicDetailsPage />} />

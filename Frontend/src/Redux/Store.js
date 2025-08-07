@@ -23,6 +23,8 @@ import authReducer from "./Slices/authSlice";
 import comicReducer from "./Slices/comicSlice";
 import subscriptionReducer from "./Slices/subscriptionSlice";
 import paymentReducer from "./Slices/paymentSlice";
+import adminReducer from "./Slices/adminSlice";
+// import reviewReducer from "./Slices/reviewSlice";
 
 const rootReducer = combineReducers({
   // user: userReducer,
@@ -30,6 +32,8 @@ const rootReducer = combineReducers({
   comic: comicReducer,
   subscription: subscriptionReducer,
   payment: paymentReducer,
+  admin: adminReducer,
+  // review: reviewReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

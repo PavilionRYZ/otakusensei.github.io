@@ -289,6 +289,25 @@ const getComics = async (req, res, next) => {
   }
 };
 
+const totalComics = async (req, res, next) => {
+  try {
+    const total = await Comic.countDocuments();
+    res.status(200).json({
+      success: true,
+      message: "Total comics retrieved successfully",
+      data: {
+        total,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+
+    return next(
+      new ErrorHandler(`Failed to fetch total comics: ${error.message}`, 500)
+    );
+  }
+};
+
 const getComicById = async (req, res, next) => {
   try {
     const comicId = req.params.id;
@@ -414,4 +433,12 @@ const likeComic = async (req, res, next) => {
   }
 };
 
-export { addComic, getComics, getComicById, likeComic, deleteComic, editComic };
+export {
+  addComic,
+  getComics,
+  getComicById,
+  likeComic,
+  deleteComic,
+  editComic,
+  totalComics,
+};
